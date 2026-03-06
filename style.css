@@ -216,7 +216,7 @@ body {
 .cell.score-cell {
     /* Font boyutu ve kenarlıklar harf hücreleriyle (cell) birebir eşitlendi */
     border: 2px solid var(--color-border) !important;
-    font-size: 2rem !important; /* Harf fontuyla aynı büyüklükte (2rem) */
+    font-size: 1.75rem !important; /* Harf fontuyla aynı büyüklükte (2rem) */
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
