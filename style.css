@@ -158,3 +158,42 @@ body {
 .hidden {
     display: none !important;
 }
+
+/* --- Draft State & Submit Button --- */
+.cell[data-state="draft"] {
+    border: 2px dashed var(--color-border-focus);
+    color: var(--color-text-muted);
+    background-color: #f8f9fa;
+    transform: scale(0.98);
+}
+
+.action-btn {
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: transform 0.1s ease, background-color 0.2s;
+    margin-top: 10px;
+}
+
+.action-btn:hover {
+    background-color: #333333;
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.action-btn:disabled {
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
