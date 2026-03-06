@@ -167,45 +167,6 @@ body {
     /* transform: scale(0.98); <-- BU SATIRI KALDIRDIK, BOYUTLAR EŞİTLENDİ */
 }
 
-/* YENİ: Harf kutusu ve butonu yan yana hizalama */
-.action-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    height: 60px; /* Harf kutusunun boyuyla aynı, kaymayı önler */
-}
-
-/* YENİ: Alanı koruyarak gizleme sınıfı (Ekran titremesini önler) */
-.v-hidden {
-    visibility: hidden !important;
-    pointer-events: none;
-}
-
-.action-btn {
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: var(--font-sans);
-    background-color: var(--color-text);
-    color: var(--color-bg);
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    transition: transform 0.1s ease, background-color 0.2s;
-    margin-top: 0; /* Üst boşluğu sıfırladık çünkü artık yan yana */
-}
-
-.action-btn:hover {
-    background-color: #333333;
-}
-
-.action-btn:active {
-    transform: scale(0.95);
-}
-
 /* --- Joker Keyboard --- */
 .keyboard-container {
     display: flex;
