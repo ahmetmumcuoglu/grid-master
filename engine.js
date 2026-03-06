@@ -150,22 +150,22 @@ function updateUI() {
         currentLetterBox.textContent = dailySequence[currentMove];
         currentLetterBox.classList.remove('hidden');
         
-        // Show/Hide Submit Button based on draft
+        // DÜZELTİLDİ: hidden yerine v-hidden kullanıyoruz
         if (draftIndex !== null) {
-            btnSubmit.classList.remove('hidden');
+            btnSubmit.classList.remove('v-hidden');
             actionMessage.textContent = "Press PLACE to confirm.";
         } else {
-            btnSubmit.classList.add('hidden');
+            btnSubmit.classList.add('v-hidden');
             actionMessage.textContent = "Select a cell to draft your letter.";
         }
         
     } else if (currentMove === 24) {
         currentLetterBox.textContent = "?";
-        btnSubmit.classList.add('hidden');
+        btnSubmit.classList.add('v-hidden');
         actionMessage.textContent = "Select any letter for your final move!";
     } else {
         currentLetterBox.classList.add('hidden');
-        btnSubmit.classList.add('hidden');
+        btnSubmit.classList.add('v-hidden');
         actionMessage.textContent = "Game Over. Calculating score...";
     }
 }
