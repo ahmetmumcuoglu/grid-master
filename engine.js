@@ -9,7 +9,7 @@ let dailySequence = [];
 let currentMove = 0;
 let isGameActive = false;
 let draftIndex = null;
-let jokerLetter = null; // YENİ: Joker harfini tutar
+let jokerLetter = null;
 
 const LETTER_POOL = {
     'A': 9, 'B': 2, 'C': 2, 'D': 4, 'E': 12, 'F': 2, 'G': 3, 'H': 2,
@@ -25,8 +25,7 @@ const currentLetterBox = document.getElementById('current-letter-box');
 const actionMessage = document.getElementById('action-message');
 const dateDisplay = document.getElementById('date-display');
 const challengeDisplay = document.getElementById('challenge-display');
-const btnSubmit = document.getElementById('btn-submit');
-const jokerKeyboard = document.getElementById('joker-keyboard'); // YENİ
+const jokerKeyboard = document.getElementById('joker-keyboard');
 
 // ==========================================
 // 2. INITIALIZATION
@@ -45,8 +44,7 @@ async function initGame() {
         updateUI();
         
         isGameActive = true;
-        actionMessage.textContent = "Select a cell to draft your letter.";
-        btnSubmit.addEventListener('click', submitMove);
+        actionMessage.textContent = "Tap a cell to draft, tap again to place."; // Mesaj güncellendi
         
     } catch (error) {
         console.error("Initialization Error:", error);
@@ -111,7 +109,7 @@ function generateDailyLetters(seed) {
 }
 
 // ==========================================
-// 4. UI RENDERING & DRAFT MECHANIC
+// 4. UI RENDERING & TAP-TO-CONFIRM MECHANIC
 // ==========================================
 function renderGrid() {
     gridEl.innerHTML = '';
@@ -124,7 +122,6 @@ function renderGrid() {
             cell.textContent = gridData[i];
             cell.setAttribute('data-state', 'filled');
         } else if (i === draftIndex) {
-            // YENİ: Normal turda sıradaki harf, 25. turda joker harfi gösterilir
             cell.textContent = currentMove === 24 ? jokerLetter : dailySequence[currentMove];
             cell.setAttribute('data-state', 'draft');
             cell.addEventListener('click', () => handleCellClick(i));
@@ -137,7 +134,6 @@ function renderGrid() {
     }
 }
 
-// YENİ: Joker klavyesini çizen ve tuşları ayarlayan fonksiyon
 function renderKeyboard() {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
     jokerKeyboard.innerHTML = '';
@@ -151,8 +147,12 @@ function renderKeyboard() {
         
         btn.addEventListener('click', () => {
             jokerLetter = letter;
-            // Son kalan boş hücreyi bul ve otomatik olarak orayı hedef al
-            draftIndex = gridData.indexOf(null);
+            
+            // Eğer daha önce bir hücre seçilmemişse, ilk boş hücreyi bul
+            if (draftIndex === null) {
+                draftIndex = gridData.indexOf(null);
+            }
+            
             renderKeyboard();
             renderGrid();
             updateUI();
@@ -164,71 +164,67 @@ function renderKeyboard() {
 
 function updateUI() {
     if (currentMove < 24) {
-        // Normal turlar
+        // Normal Turlar
         currentLetterBox.textContent = dailySequence[currentMove];
         currentLetterBox.classList.remove('hidden');
         jokerKeyboard.classList.add('hidden');
         
         if (draftIndex !== null) {
-            btnSubmit.classList.remove('v-hidden');
-            actionMessage.textContent = "Press PLACE to confirm.";
+            actionMessage.textContent = "Tap again to place.";
         } else {
-            btnSubmit.classList.add('v-hidden');
-            actionMessage.textContent = "Select a cell to draft your letter.";
+            actionMessage.textContent = "Tap a cell to draft your letter.";
         }
         
     } else if (currentMove === 24) {
-        // YENİ: Joker turu (25. Tur)
+        // Joker Turu
         currentLetterBox.classList.add('hidden');
         jokerKeyboard.classList.remove('hidden');
-        renderKeyboard();
         
         if (draftIndex !== null && jokerLetter !== null) {
-            btnSubmit.classList.remove('v-hidden');
-            actionMessage.textContent = "Press PLACE to finish the game.";
+            actionMessage.textContent = "Tap the grid cell again to finish the game.";
         } else {
-            btnSubmit.classList.add('v-hidden');
-            actionMessage.textContent = "Choose your final letter.";
+            actionMessage.textContent = "Choose your final letter from the keyboard.";
+            renderKeyboard(); // Klavyeyi ilk defa gösteriyorsak çiz
         }
         
     } else {
-        // Game Over
+        // Oyun Bitti
         currentLetterBox.classList.add('hidden');
         jokerKeyboard.classList.add('hidden');
-        btnSubmit.classList.add('v-hidden');
         actionMessage.textContent = "Game Over. Calculating score...";
     }
 }
 
+// YENİ: Tap-to-Confirm Mantığı Burada Çalışıyor
 function handleCellClick(index) {
     if (!isGameActive || gridData[index] !== null) return;
     
-    if (currentMove < 24) {
-        if (draftIndex === index) {
-            draftIndex = null;
-        } else {
-            draftIndex = index;
+    // 1. Tıklama: Taslak olarak ayarla (veya başka hücreye taşı)
+    if (draftIndex !== index) {
+        draftIndex = index;
+        renderGrid();
+        updateUI();
+    } 
+    // 2. Tıklama (Aynı hücreye): Onayla ve Kilitle
+    else {
+        // Joker turundaysak jokerLetter seçilmiş olmalı
+        if (currentMove === 24 && jokerLetter === null) {
+            actionMessage.textContent = "Please select a letter from the keyboard first!";
+            return;
         }
+
+        // Harfi kilitle
+        gridData[index] = currentMove === 24 ? jokerLetter : dailySequence[currentMove];
+        currentMove++;
+        draftIndex = null; // Taslağı sıfırla
+        
+        if (currentMove === 25) {
+            isGameActive = false; // Bütün grid doldu, oyun bitti
+        }
+        
         renderGrid();
         updateUI();
     }
-    // 25. turda hücreye tıklamaya gerek yok, klavyeden seçince otomatik yerleşiyor
-}
-
-function submitMove() {
-    if (draftIndex === null || gridData[draftIndex] !== null) return;
-    
-    // YENİ: Eğer 25. turdaysak joker harfini, değilse normal dizilimdeki harfi kaydet
-    gridData[draftIndex] = currentMove === 24 ? jokerLetter : dailySequence[currentMove];
-    currentMove++;
-    draftIndex = null;
-    
-    if (currentMove === 25) {
-        isGameActive = false; // Oyun bitti
-    }
-    
-    renderGrid();
-    updateUI();
 }
 
 // Start Engine
