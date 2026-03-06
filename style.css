@@ -205,3 +205,40 @@ body {
 .action-btn:active {
     transform: scale(0.95);
 }
+
+/* --- Joker Keyboard --- */
+.keyboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 350px;
+    margin-top: 10px;
+}
+
+.key-btn {
+    width: 32px;
+    height: 42px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    background-color: var(--color-cell-active);
+    color: var(--color-text);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.1s;
+}
+
+.key-btn:hover {
+    background-color: #cbd5e1;
+}
+
+.key-btn.selected {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+}
