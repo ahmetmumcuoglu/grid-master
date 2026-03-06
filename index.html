@@ -1,10 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Grid Master Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Grid Master</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Grid Master: Coming Soon</h1>
-    <p>A premium daily word puzzle experience.</p>
+    <div class="game-app">
+        <header class="header">
+            <button id="btn-archive" class="icon-btn" aria-label="Archive" title="Archive">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            
+            <h1 class="title">Grid Master</h1>
+            
+            <div class="header-right">
+                <button id="btn-help" class="icon-btn" aria-label="How to Play" title="How to Play">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <button id="btn-stats" class="icon-btn" aria-label="Statistics" title="Statistics">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                </button>
+            </div>
+        </header>
+        
+        <div class="sub-header">
+            <span id="date-display">March 6, 2026</span>
+            <span id="challenge-display">No. 1</span>
+        </div>
+
+        <main class="board-container">
+            <div id="grid" class="grid">
+                </div>
+        </main>
+
+        <div class="controls-container">
+            <div id="current-letter-box" class="letter-box hidden"></div>
+            <div id="action-message" class="message">Loading dictionary...</div>
+        </div>
+    </div>
+    
+    <script type="module" src="app.js"></script>
 </body>
 </html>
