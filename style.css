@@ -159,16 +159,31 @@ body {
     display: none !important;
 }
 
-/* --- Draft State & Submit Button --- */
+/* --- Draft State & Action Row (UPDATED) --- */
 .cell[data-state="draft"] {
     border: 2px dashed var(--color-border-focus);
     color: var(--color-text-muted);
     background-color: #f8f9fa;
-    transform: scale(0.98);
+    /* transform: scale(0.98); <-- BU SATIRI KALDIRDIK, BOYUTLAR EŞİTLENDİ */
+}
+
+/* YENİ: Harf kutusu ve butonu yan yana hizalama */
+.action-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    height: 60px; /* Harf kutusunun boyuyla aynı, kaymayı önler */
+}
+
+/* YENİ: Alanı koruyarak gizleme sınıfı (Ekran titremesini önler) */
+.v-hidden {
+    visibility: hidden !important;
+    pointer-events: none;
 }
 
 .action-btn {
-    padding: 12px 32px;
+    padding: 12px 24px;
     font-size: 14px;
     font-weight: 700;
     font-family: var(--font-sans);
@@ -180,7 +195,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 1.5px;
     transition: transform 0.1s ease, background-color 0.2s;
-    margin-top: 10px;
+    margin-top: 0; /* Üst boşluğu sıfırladık çünkü artık yan yana */
 }
 
 .action-btn:hover {
@@ -189,11 +204,4 @@ body {
 
 .action-btn:active {
     transform: scale(0.95);
-}
-
-.action-btn:disabled {
-    background-color: var(--color-border);
-    color: var(--color-text-muted);
-    cursor: not-allowed;
-    transform: none;
 }
