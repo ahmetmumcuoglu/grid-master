@@ -208,18 +208,39 @@ body {
 .grid.final-grid {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
+    max-width: 420px; /* 350px (5 hücre) yerine 420px (6 hücre) - Hücre boyu aynı kalır! */
+    aspect-ratio: auto; /* Otomatik kare formu */
 }
 
 .cell.score-cell {
-    background-color: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    font-size: 1.2rem;
+    /* Kenarlıklar regular hücrelerle aynı kalıyor */
+    border: 2px solid var(--color-border);
+    font-size: 1.5rem;
     font-weight: 700;
+    transition: background-color 0.5s ease; /* Renklerin yumuşak gelmesi için */
 }
 
+/* YENİ: NYT / Wordle Tarzı Premium Puan Renkleri */
+.score-0 { background-color: #94a3b8; color: #ffffff !important; border-color: #94a3b8 !important; } /* Gri */
+.score-2 { background-color: #f97316; color: #ffffff !important; border-color: #f97316 !important; } /* Turuncu */
+.score-4 { background-color: #facc15; color: #1a1a1a !important; border-color: #facc15 !important; } /* Sarı (Siyah Yazı) */
+.score-5 { background-color: #14b8a6; color: #ffffff !important; border-color: #14b8a6 !important; } /* Teal / Camgöbeği */
+.score-7 { background-color: #22c55e; color: #ffffff !important; border-color: #22c55e !important; } /* Yeşil */
+.score-9 { background-color: #3b82f6; color: #ffffff !important; border-color: #3b82f6 !important; } /* Mavi */
+.score-15 { background-color: #8b5cf6; color: #ffffff !important; border-color: #8b5cf6 !important;} /* Mor */
+
+/* En sağ alt köşedeki boş hücre */
 .cell.empty-corner {
-    background-color: transparent;
-    border: none;
+    background-color: transparent !important;
+    border: none !important;
     cursor: default;
+}
+
+/* YENİ: Oyun sonu büyük ve yakın skor metni */
+.final-score-text {
+    font-size: 28px !important;
+    font-weight: 800;
+    color: var(--color-text);
+    margin-top: -10px; /* Grid'e yaklaştırır */
+    letter-spacing: 0.5px;
 }
