@@ -1,4 +1,6 @@
 import { firebaseConfig } from './config.js';
+// Make sure to import Firestore components if using Firebase v9+ modular SDK
+// import { getFirestore, doc, setDoc } from "firebase/firestore"; 
 
 // ==========================================
 // 1. GAME STATE & CONSTANTS
@@ -18,6 +20,7 @@ const LETTER_POOL = {
     'Y': 2, 'Z': 1
 };
 const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+const SCORE_RULES = { 2: 2, 3: 5, 4: 9, 5: 15 };
 
 // DOM Elements
 const gridEl = document.getElementById('grid');
@@ -28,7 +31,7 @@ const challengeDisplay = document.getElementById('challenge-display');
 const jokerKeyboard = document.getElementById('joker-keyboard');
 
 // ==========================================
-// 2. INITIALIZATION
+// 2. INITIALIZATION & STATE RECOVERY
 // ==========================================
 async function initGame() {
     try {
@@ -40,16 +43,50 @@ async function initGame() {
         dictionary = new Set(wordsArray.map(w => w.toUpperCase()));
         
         setupDailyContext();
+        loadGameState(); // YENİ: Kayıtlı oyunu kontrol et
+        
         renderGrid();
         updateUI();
         
-        isGameActive = true;
-        actionMessage.textContent = "Tap a cell to draft, tap again to place."; // Mesaj güncellendi
+        if (currentMove < 25) {
+            isGameActive = true;
+            actionMessage.textContent = "Tap a cell to draft, tap again to place.";
+        } else {
+            // Eğer sayfa yenilendiğinde oyun zaten bitmişse direkt sonuçları göster
+            calculateAndSaveScore();
+        }
         
     } catch (error) {
         console.error("Initialization Error:", error);
         actionMessage.textContent = "Error loading game data.";
     }
+}
+
+// YENİ: Oyunu tarayıcı hafızasından yükler
+function loadGameState() {
+    const savedState = localStorage.getItem('gridMaster_dailyState');
+    const todayStr = new Date().toDateString();
+
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        // Eğer kayıt bugüne aitse yükle, dünün kaydıysa sil
+        if (state.date === todayStr) {
+            gridData = state.grid;
+            currentMove = state.move;
+        } else {
+            localStorage.removeItem('gridMaster_dailyState');
+        }
+    }
+}
+
+// YENİ: Hamle yapıldıkça oyunu tarayıcı hafızasına kaydeder
+function saveGameState() {
+    const state = {
+        date: new Date().toDateString(),
+        grid: gridData,
+        move: currentMove
+    };
+    localStorage.setItem('gridMaster_dailyState', JSON.stringify(state));
 }
 
 // ==========================================
@@ -109,7 +146,7 @@ function generateDailyLetters(seed) {
 }
 
 // ==========================================
-// 4. UI RENDERING & TAP-TO-CONFIRM MECHANIC
+// 4. UI RENDERING & TAP-TO-CONFIRM
 // ==========================================
 function renderGrid() {
     gridEl.innerHTML = '';
@@ -147,12 +184,9 @@ function renderKeyboard() {
         
         btn.addEventListener('click', () => {
             jokerLetter = letter;
-            
-            // Eğer daha önce bir hücre seçilmemişse, ilk boş hücreyi bul
             if (draftIndex === null) {
                 draftIndex = gridData.indexOf(null);
             }
-            
             renderKeyboard();
             renderGrid();
             updateUI();
@@ -164,7 +198,6 @@ function renderKeyboard() {
 
 function updateUI() {
     if (currentMove < 24) {
-        // Normal Turlar
         currentLetterBox.textContent = dailySequence[currentMove];
         currentLetterBox.classList.remove('hidden');
         jokerKeyboard.classList.add('hidden');
@@ -174,9 +207,7 @@ function updateUI() {
         } else {
             actionMessage.textContent = "Tap a cell to draft your letter.";
         }
-        
     } else if (currentMove === 24) {
-        // Joker Turu
         currentLetterBox.classList.add('hidden');
         jokerKeyboard.classList.remove('hidden');
         
@@ -184,47 +215,107 @@ function updateUI() {
             actionMessage.textContent = "Tap the grid cell again to finish the game.";
         } else {
             actionMessage.textContent = "Choose your final letter from the keyboard.";
-            renderKeyboard(); // Klavyeyi ilk defa gösteriyorsak çiz
+            renderKeyboard();
         }
-        
     } else {
-        // Oyun Bitti
         currentLetterBox.classList.add('hidden');
         jokerKeyboard.classList.add('hidden');
         actionMessage.textContent = "Game Over. Calculating score...";
     }
 }
 
-// YENİ: Tap-to-Confirm Mantığı Burada Çalışıyor
 function handleCellClick(index) {
     if (!isGameActive || gridData[index] !== null) return;
     
-    // 1. Tıklama: Taslak olarak ayarla (veya başka hücreye taşı)
     if (draftIndex !== index) {
         draftIndex = index;
         renderGrid();
         updateUI();
     } 
-    // 2. Tıklama (Aynı hücreye): Onayla ve Kilitle
     else {
-        // Joker turundaysak jokerLetter seçilmiş olmalı
         if (currentMove === 24 && jokerLetter === null) {
             actionMessage.textContent = "Please select a letter from the keyboard first!";
             return;
         }
 
-        // Harfi kilitle
         gridData[index] = currentMove === 24 ? jokerLetter : dailySequence[currentMove];
         currentMove++;
-        draftIndex = null; // Taslağı sıfırla
+        draftIndex = null;
         
+        saveGameState(); // YENİ: Hamleyi Local Storage'a kaydet
+
         if (currentMove === 25) {
-            isGameActive = false; // Bütün grid doldu, oyun bitti
+            isGameActive = false;
+            renderGrid();
+            updateUI();
+            calculateAndSaveScore(); // YENİ: Oyun bitti, puanı hesapla
+        } else {
+            renderGrid();
+            updateUI();
         }
-        
-        renderGrid();
-        updateUI();
     }
+}
+
+// ==========================================
+// 5. SCORING & FIREBASE SAVING
+// ==========================================
+
+function getLineString(indices) {
+    return indices.map(index => gridData[index] || ' ').join('');
+}
+
+function getSegmentScore(text) {
+    let bestScore = 0;
+    
+    // Check all possible sub-strings (length 2 to 5)
+    for (let len = 5; len >= 2; len--) {
+        for (let i = 0; i <= text.length - len; i++) {
+            const sub = text.substring(i, i + len);
+            if (dictionary.has(sub)) {
+                // Simplified scoring: return the highest single valid word score in this segment
+                // A more complex overlapping logic can be added later if needed
+                if (SCORE_RULES[len] > bestScore) {
+                    bestScore = SCORE_RULES[len];
+                }
+            }
+        }
+    }
+    return bestScore;
+}
+
+function calculateAndSaveScore() {
+    let totalScore = 0;
+    const GRID_SIZE = 5;
+
+    // Check Rows
+    for (let row = 0; row < GRID_SIZE; row++) {
+        const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
+        const lineStr = getLineString(indices);
+        const segments = lineStr.split(' '); // Split by empty spaces if any
+        segments.forEach(seg => {
+            if (seg.length >= 2) totalScore += getSegmentScore(seg);
+        });
+    }
+
+    // Check Columns
+    for (let col = 0; col < GRID_SIZE; col++) {
+        const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
+        const lineStr = getLineString(indices);
+        const segments = lineStr.split(' ');
+        segments.forEach(seg => {
+            if (seg.length >= 2) totalScore += getSegmentScore(seg);
+        });
+    }
+
+    actionMessage.textContent = `Excellent! Your Score: ${totalScore}`;
+    
+    // TODO: Fire "Game Over" Modal and push totalScore to Firebase
+    submitToFirebase(totalScore);
+}
+
+function submitToFirebase(score) {
+    // We will build the Firebase v9 integration here in the next step
+    console.log("Submitting to Firebase:", score, "Grid:", gridData);
 }
 
 // Start Engine
