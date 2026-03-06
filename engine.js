@@ -257,7 +257,7 @@ function handleCellClick(index) {
 }
 
 // ==========================================
-// 5. SCORING & FIREBASE SAVING
+// 5. SCORING & FINAL GRID RENDERING
 // ==========================================
 
 function getLineString(indices) {
@@ -272,8 +272,6 @@ function getSegmentScore(text) {
         for (let i = 0; i <= text.length - len; i++) {
             const sub = text.substring(i, i + len);
             if (dictionary.has(sub)) {
-                // Simplified scoring: return the highest single valid word score in this segment
-                // A more complex overlapping logic can be added later if needed
                 if (SCORE_RULES[len] > bestScore) {
                     bestScore = SCORE_RULES[len];
                 }
@@ -286,14 +284,22 @@ function getSegmentScore(text) {
 function calculateAndSaveScore() {
     let totalScore = 0;
     const GRID_SIZE = 5;
+    
+    // Arrays to hold scores for each row and column
+    let rowScores = Array(5).fill(0);
+    let colScores = Array(5).fill(0);
 
     // Check Rows
     for (let row = 0; row < GRID_SIZE; row++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
         const lineStr = getLineString(indices);
-        const segments = lineStr.split(' '); // Split by empty spaces if any
+        const segments = lineStr.split(' ');
         segments.forEach(seg => {
-            if (seg.length >= 2) totalScore += getSegmentScore(seg);
+            if (seg.length >= 2) {
+                const score = getSegmentScore(seg);
+                rowScores[row] += score;
+                totalScore += score;
+            }
         });
     }
 
@@ -303,19 +309,77 @@ function calculateAndSaveScore() {
         const lineStr = getLineString(indices);
         const segments = lineStr.split(' ');
         segments.forEach(seg => {
-            if (seg.length >= 2) totalScore += getSegmentScore(seg);
+            if (seg.length >= 2) {
+                const score = getSegmentScore(seg);
+                colScores[col] += score;
+                totalScore += score;
+            }
         });
     }
 
     actionMessage.textContent = `Excellent! Your Score: ${totalScore}`;
     
-    // TODO: Fire "Game Over" Modal and push totalScore to Firebase
+    // Transform 5x5 to 6x6 Score Grid
+    renderFinalGrid(rowScores, colScores);
+    
+    // TODO: Prepare data for Firebase submission
     submitToFirebase(totalScore);
 }
 
+// NEW: Renders the 6x6 Grid with row and column scores
+function renderFinalGrid(rowScores, colScores) {
+    gridEl.classList.add('final-grid');
+    gridEl.innerHTML = '';
+    
+    for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = gridData[i];
+        cell.setAttribute('data-state', 'filled');
+        gridEl.appendChild(cell);
+        
+        // At the end of every row (indices 4, 9, 14, 19, 24), append the row score
+        if ((i + 1) % 5 === 0) {
+            const rowIndex = Math.floor(i / 5);
+            const scoreCell = document.createElement('div');
+            scoreCell.className = 'cell score-cell';
+            scoreCell.textContent = rowScores[rowIndex];
+            gridEl.appendChild(scoreCell);
+        }
+    }
+    
+    // After 25 cells and 5 row scores, append the 5 column scores for the bottom row
+    colScores.forEach(score => {
+        const scoreCell = document.createElement('div');
+        scoreCell.className = 'cell score-cell';
+        scoreCell.textContent = score;
+        gridEl.appendChild(scoreCell);
+    });
+    
+    // Append the final empty corner cell
+    const cornerCell = document.createElement('div');
+    cornerCell.className = 'cell empty-corner';
+    gridEl.appendChild(cornerCell);
+}
+
 function submitToFirebase(score) {
-    // We will build the Firebase v9 integration here in the next step
-    console.log("Submitting to Firebase:", score, "Grid:", gridData);
+    console.log("Game Over. Total Score:", score);
+    // Firebase implementation will go here
+}
+
+// ==========================================
+// 6. DEVELOPMENT TOOLS
+// ==========================================
+
+// NEW: Dev Reset mechanism to quickly test the game repeatedly
+const btnDevReset = document.getElementById('btn-dev-reset');
+if (btnDevReset) {
+    btnDevReset.addEventListener('click', () => {
+        // Clear the saved state from LocalStorage
+        localStorage.removeItem('gridMaster_dailyState');
+        // Reload the page to start a fresh game
+        window.location.reload();
+    });
 }
 
 // Start Engine
