@@ -203,3 +203,23 @@ body {
     background-color: var(--color-text);
     color: var(--color-bg);
 }
+
+/* --- Final 6x6 Score Grid (Game Over) --- */
+.grid.final-grid {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+}
+
+.cell.score-cell {
+    background-color: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.cell.empty-corner {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+}
