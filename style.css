@@ -204,45 +204,43 @@ body {
     color: var(--color-bg);
 }
 
-/* --- Final 6x6 Score Grid (Game Over) --- */
+/* --- Final 6x6 Score Grid (Bütünleşik Görünüm) --- */
 .grid.final-grid {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    /* 5x5 grid max 350px idi. Hücre boyutunu birebir korumak için 6x6'yı 424px yapıyoruz */
     max-width: 424px; 
     width: 100%;
     aspect-ratio: 1 / 1;
 }
 
 .cell.score-cell {
-    border: 2px solid var(--color-border);
-    font-size: 1.5rem;
+    /* Font boyutu ve kenarlıklar harf hücreleriyle (cell) birebir eşitlendi */
+    border: 2px solid var(--color-border) !important;
+    font-size: 2rem !important; /* Harf fontuyla aynı büyüklükte (2rem) */
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
 
-/* YENİ: Bütün puan fontları SİYAH (#1a1a1a) olarak güncellendi */
-.score-0 { background-color: #94a3b8; color: #1a1a1a !important; border-color: #94a3b8 !important; }
-.score-2 { background-color: #f97316; color: #1a1a1a !important; border-color: #f97316 !important; }
-.score-4 { background-color: #facc15; color: #1a1a1a !important; border-color: #facc15 !important; }
-.score-5 { background-color: #14b8a6; color: #1a1a1a !important; border-color: #14b8a6 !important; }
-.score-7 { background-color: #22c55e; color: #1a1a1a !important; border-color: #22c55e !important; }
-.score-9 { background-color: #3b82f6; color: #1a1a1a !important; border-color: #3b82f6 !important; }
-.score-15 { background-color: #8b5cf6; color: #1a1a1a !important; border-color: #8b5cf6 !important;}
+/* Puan hücrelerindeki rakamların rengi ve netliği */
+.score-0 { background-color: #94a3b8; color: #1a1a1a !important; }
+.score-2 { background-color: #f97316; color: #1a1a1a !important; }
+.score-4 { background-color: #facc15; color: #1a1a1a !important; }
+.score-5 { background-color: #14b8a6; color: #1a1a1a !important; }
+.score-7 { background-color: #22c55e; color: #1a1a1a !important; }
+.score-9 { background-color: #3b82f6; color: #1a1a1a !important; }
+.score-15 { background-color: #8b5cf6; color: #1a1a1a !important; }
 
-/* En sağ alt köşedeki boş hücre */
+/* En sağ alt köşedeki boş hücre (Sadece burası şeffaf kalacak) */
 .cell.empty-corner {
     background-color: transparent !important;
     border: none !important;
-    cursor: default;
 }
 
-/* YENİ: Sade, şık, küçük ve tok skor yazısı */
 .final-score-text {
     font-size: 16px !important;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    margin-top: 0px;
+    margin-top: 5px;
 }
