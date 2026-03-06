@@ -267,7 +267,6 @@ function getLineString(indices) {
 function getSegmentScore(text) {
     let bestScore = 0;
     
-    // Check all possible sub-strings (length 2 to 5)
     for (let len = 5; len >= 2; len--) {
         for (let i = 0; i <= text.length - len; i++) {
             const sub = text.substring(i, i + len);
@@ -281,11 +280,21 @@ function getSegmentScore(text) {
     return bestScore;
 }
 
+// YENİ: Puana göre eşleşen CSS sınıfını döndürür
+function getScoreColorClass(score) {
+    if (score >= 15) return 'score-15';
+    if (score >= 9) return 'score-9';
+    if (score >= 7) return 'score-7';
+    if (score >= 5) return 'score-5';
+    if (score >= 4) return 'score-4';
+    if (score >= 2) return 'score-2';
+    return 'score-0';
+}
+
 function calculateAndSaveScore() {
     let totalScore = 0;
     const GRID_SIZE = 5;
     
-    // Arrays to hold scores for each row and column
     let rowScores = Array(5).fill(0);
     let colScores = Array(5).fill(0);
 
@@ -317,16 +326,16 @@ function calculateAndSaveScore() {
         });
     }
 
-    actionMessage.textContent = `Excellent! Your Score: ${totalScore}`;
+    // YENİ: Temiz ve büyük skor yazısı
+    actionMessage.textContent = `Your Score: ${totalScore}`;
+    actionMessage.classList.add('final-score-text');
     
     // Transform 5x5 to 6x6 Score Grid
     renderFinalGrid(rowScores, colScores);
     
-    // TODO: Prepare data for Firebase submission
     submitToFirebase(totalScore);
 }
 
-// NEW: Renders the 6x6 Grid with row and column scores
 function renderFinalGrid(rowScores, colScores) {
     gridEl.classList.add('final-grid');
     gridEl.innerHTML = '';
@@ -338,25 +347,27 @@ function renderFinalGrid(rowScores, colScores) {
         cell.setAttribute('data-state', 'filled');
         gridEl.appendChild(cell);
         
-        // At the end of every row (indices 4, 9, 14, 19, 24), append the row score
+        // Satır sonlarına (sağa) puan hücresini ekle
         if ((i + 1) % 5 === 0) {
             const rowIndex = Math.floor(i / 5);
+            const score = rowScores[rowIndex];
             const scoreCell = document.createElement('div');
-            scoreCell.className = 'cell score-cell';
-            scoreCell.textContent = rowScores[rowIndex];
+            // Renk sınıfını dinamik olarak ekliyoruz
+            scoreCell.className = `cell score-cell ${getScoreColorClass(score)}`;
+            scoreCell.textContent = score;
             gridEl.appendChild(scoreCell);
         }
     }
     
-    // After 25 cells and 5 row scores, append the 5 column scores for the bottom row
+    // Alt satıra sütun puanlarını ekle
     colScores.forEach(score => {
         const scoreCell = document.createElement('div');
-        scoreCell.className = 'cell score-cell';
+        scoreCell.className = `cell score-cell ${getScoreColorClass(score)}`;
         scoreCell.textContent = score;
         gridEl.appendChild(scoreCell);
     });
     
-    // Append the final empty corner cell
+    // En sağ alt köşedeki görünmez boş hücre
     const cornerCell = document.createElement('div');
     cornerCell.className = 'cell empty-corner';
     gridEl.appendChild(cornerCell);
