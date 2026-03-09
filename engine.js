@@ -723,7 +723,7 @@ function generateShareText(totalScore) {
     // Şimdilik basitleştirmek için sadece toplam skoru ve bir linki paylaşıyoruz
     
     let text = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\n`;
-    text += `https://senin-oyun-linkin.com`; // Burayı kendi linkinle güncelle
+    text += `https://thegridmaster.netlify.app/`; // Burayı kendi linkinle güncelle
 
     return text;
 }
