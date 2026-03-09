@@ -494,26 +494,32 @@ body {
     text-align: center;
 }
 
-.share-btn {
+/* --- Compact Share Button (Sub-header) --- */
+.share-btn-compact {
     background-color: #6aaa64; /* Wordle Yeşili */
     color: white;
     border: none;
-    padding: 12px 24px;
-    font-size: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
     font-weight: 700;
     border-radius: 4px;
     cursor: pointer;
-    display: inline-flex;
+    display: flex; /* İkon ve yazıyı yan yana hizalar */
     align-items: center;
-    transition: background-color 0.2s;
+    gap: 5px;
+    transition: background-color 0.2s, transform 0.1s;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
-.share-btn:hover {
+.share-btn-compact:hover {
     background-color: #538d4e;
 }
 
-.share-btn:active {
-    transform: scale(0.98);
+.share-btn-compact:active {
+    transform: scale(0.95);
+}
+
+.share-btn-compact.hidden {
+    display: none !important;
 }
