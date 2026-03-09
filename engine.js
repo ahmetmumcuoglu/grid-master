@@ -760,70 +760,59 @@ async function updatePlayerStats(currentScore) {
     const user = auth.currentUser;
     if (!user) return;
 
-    const statsRef = doc(db, "users", user.uid, "user_summary", "data");
-    const statsSnap = await getDoc(statsRef);
-    
-    let stats = {
-        played: 0,
-        currentStreak: 0,
-        maxStreak: 0,
-        personalBest: 0,
-        lastPlayedDate: null,
-        distribution: [0, 0, 0, 0, 0] // [0-40, 41-60, 61-80, 81-100, 101+]
-    };
+    try {
+        const statsRef = doc(db, "users", user.uid, "user_summary", "data");
+        
+        // Eğer hafızada yoksa mecbur veritabanından çekeceğiz ki streak hesaplayabilelim
+        if (!cachedUserStats) {
+            const snap = await getDoc(statsRef);
+            if (snap.exists()) {
+                cachedUserStats = snap.data();
+            } else {
+                cachedUserStats = { played: 0, currentStreak: 0, maxStreak: 0, personalBest: 0, distribution: [0,0,0,0,0], lastPlayedDate: null };
+            }
+        }
 
-    if (statsSnap.exists()) {
-        stats = statsSnap.data();
+        // 1. Oynanma Sayısı & En İyi Skor
+        cachedUserStats.played++;
+        if (currentScore > cachedUserStats.personalBest) {
+            cachedUserStats.personalBest = currentScore;
+        }
+
+        // 2. Streak Hesaplama (Bugün ve Dün mantığı)
+        const today = new Date();
+        // Saat dilimi kaymalarını önlemek için yerel tarihi string yapıyoruz (YYYY-MM-DD)
+        const todayStr = today.toLocaleDateString('en-CA'); 
+        
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+
+        if (cachedUserStats.lastPlayedDate === yesterdayStr) {
+            cachedUserStats.currentStreak++;
+        } else if (cachedUserStats.lastPlayedDate !== todayStr) {
+            // Eğer en son bugün oynanmadıysa ve dün de oynanmadıysa seri bozulmuş demektir
+            cachedUserStats.currentStreak = 1; 
+        }
+
+        if (cachedUserStats.currentStreak > cachedUserStats.maxStreak) {
+            cachedUserStats.maxStreak = cachedUserStats.currentStreak;
+        }
+        cachedUserStats.lastPlayedDate = todayStr;
+
+        // 3. Skor Dağılımını Güncelle (0-40, 41-60, 61-80, 81-100, 101+)
+        if (currentScore <= 40) cachedUserStats.distribution[0]++;
+        else if (currentScore <= 60) cachedUserStats.distribution[1]++;
+        else if (currentScore <= 80) cachedUserStats.distribution[2]++;
+        else if (currentScore <= 100) cachedUserStats.distribution[3]++;
+        else cachedUserStats.distribution[4]++;
+
+        // 4. Firebase'e Kaydet
+        await setDoc(statsRef, cachedUserStats);
+
+    } catch (error) {
+        console.error("Error updating stats:", error);
     }
-
-    // 1. Oynanma Sayısı
-    stats.played++;
-
-    // 2. Kişisel Rekor
-    if (currentScore > stats.personalBest) {
-        stats.personalBest = currentScore;
-    }
-
-    // 3. Streak Hesaplama
-    const todayStr = new Date().toISOString().split('T')[0];
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    if (stats.lastPlayedDate === yesterdayStr) {
-        stats.currentStreak++;
-    } else if (stats.lastPlayedDate !== todayStr) {
-        stats.currentStreak = 1;
-    }
-    
-    if (stats.currentStreak > stats.maxStreak) {
-        stats.maxStreak = stats.currentStreak;
-    }
-    stats.lastPlayedDate = todayStr;
-
-    // 4. Skor Dağılımı
-    if (currentScore <= 40) stats.distribution[0]++;
-    else if (currentScore <= 60) stats.distribution[1]++;
-    else if (currentScore <= 80) stats.distribution[2]++;
-    else if (currentScore <= 100) stats.distribution[3]++;
-    else stats.distribution[4]++;
-
-    // Firebase'e kaydet
-    await setDoc(statsRef, stats);
-    return stats;
-}
-
-// 5. Günün En Yüksek Skorunu Güncelle (Global)
-async function updateDailyTopScore(score) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const topScoreRef = doc(db, "daily_stats", todayStr);
-    
-    // Atomik işlem: Sadece skor daha büyükse güncelle
-    await setDoc(topScoreRef, { 
-        topScore: score 
-    }, { merge: true }); 
-    // Not: Gerçek senaryoda burada Firestore 'transaction' veya 'runTransaction' 
-    // kullanarak sadece skor büyükse yazma kontrolü yapmak daha güvenlidir.
 }
 
 // ==========================================
@@ -900,5 +889,31 @@ async function showStatsModal() {
             </div>
         `;
         distContainer.insertAdjacentHTML('beforeend', barHtml);
+    });
+}
+
+function setupEventListeners() {
+    // ... diğer butonların kodları (Help, Archive vs.) ...
+
+    // İstatistik Modalı Butonları buraya:
+    const btnStats = document.getElementById('btn-stats');
+    const closeStats = document.getElementById('close-stats');
+    const statsModal = document.getElementById('stats-modal');
+
+    if (btnStats) {
+        btnStats.addEventListener('click', showStatsModal);
+    }
+
+    if (closeStats) {
+        closeStats.addEventListener('click', () => {
+            statsModal.style.display = 'none';
+        });
+    }
+
+    // Modal dışına tıklayınca kapanması için
+    window.addEventListener('click', (e) => {
+        if (e.target === statsModal) {
+            statsModal.style.display = 'none';
+        }
     });
 }
