@@ -385,8 +385,7 @@ function calculateAndSaveScore() {
         allFoundWords.push(...lineData.words);
     }
 
-    actionMessage.textContent = `Your Score: ${totalScore}`;
-    actionMessage.classList.add('final-score-text');
+        actionMessage.classList.add('final-score-text');
     
     renderFinalGrid(rowScores, colScores);
     
