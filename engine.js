@@ -930,11 +930,10 @@ if (closeStats) {
 // ==========================================
 
 async function handleDailyTopScore(userScore, dateStr) {
-    const panel = document.getElementById('final-score-panel');
-    const globalScoreVal = document.getElementById('daily-top-banner');
-    const userScoreBox = document.querySelector('.user-score');
+    const dailyBestVal = document.getElementById('final-daily-best-value');
+    const userScoreBox = document.querySelector('.user-score-box');
     
-    if (!panel || !globalScoreVal) return;
+    if (!dailyBestVal || !userScoreBox) return;
 
     try {
         const topScoreRef = doc(db, "daily_stats", dateStr);
@@ -945,15 +944,19 @@ async function handleDailyTopScore(userScore, dateStr) {
             currentTop = docSnap.data().topScore || 0;
         }
 
-        panel.classList.remove('hidden');
+        // Skorları kutulara yazdır
+        dailyBestVal.textContent = currentTop;
 
-        if (userScore >= currentTop) {
-            // 👑 Yeni rekor!
+        if (userScore >= currentTop && userScore > 0) {
+            // 👑 Yeni rekor! (Sadece 0'dan büyükse rekor sayalım)
             await setDoc(topScoreRef, { topScore: userScore }, { merge: true });
-            globalScoreVal.textContent = userScore;
-            userScoreBox.classList.add('new-record'); // Kendi kutunu parlat
+            
+            // Daily Best değerini anında güncelle
+            dailyBestVal.textContent = userScore;
+            
+            // Your Score kutusunu parlat (CSS class ekle)
+            userScoreBox.classList.add('new-record');
         } else {
-            globalScoreVal.textContent = currentTop;
             userScoreBox.classList.remove('new-record');
         }
 
