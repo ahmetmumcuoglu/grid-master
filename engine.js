@@ -666,3 +666,30 @@ function startSpecificDateGame(dateStr) {
     const actionMessage = document.getElementById('action-message');
     if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
 }
+
+// ==========================================
+// 9. HELP (HOW TO PLAY) MODAL
+// ==========================================
+const btnHelp = document.getElementById('btn-help');
+const helpModal = document.getElementById('help-modal');
+const closeHelpBtn = document.getElementById('close-help');
+
+if (btnHelp) {
+    btnHelp.addEventListener('click', () => {
+        helpModal.classList.add('active');
+    });
+}
+
+if (closeHelpBtn) {
+    closeHelpBtn.addEventListener('click', () => {
+        helpModal.classList.remove('active');
+    });
+}
+
+// Modal dışına tıklandığında (karanlık alana) modalları kapatma genel mantığı
+document.addEventListener('click', (e) => {
+    // Sadece 'active' class'ına sahip overlay'lere tıklandıysa kapat
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+    }
+});
