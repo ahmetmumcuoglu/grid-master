@@ -393,18 +393,30 @@ function calculateAndSaveScore() {
     const uniqueWords = [...new Set(allFoundWords)].sort((a, b) => b.length - a.length || a.localeCompare(b));
     renderWordsList(uniqueWords);
 
-    const shareContainer = document.getElementById('share-container');
-    const shareBtn = document.getElementById('btn-share-score');
-if (shareBtn) {
-    shareBtn.classList.remove('hidden');
-    // DÜZELTME: totalScore yanına rowScores ve colScores'u ekledik
-    shareBtn.onclick = () => handleShare(totalScore, rowScores, colScores);
-}
-    
-    submitToFirebase(totalScore);
-    updatePlayerStats(totalScore);
+    // 1. Oyun içi mesaj alanını GİZLE
+    const messageArea = document.getElementById('game-message-area');
+    if (messageArea) messageArea.classList.add('hidden');
 
-    // YENİ: Günün en yüksek skorunu kontrol et ve ekrana bas
+    // 2. Oyun sonu skor alanını GÖSTER
+    const endStatsArea = document.getElementById('end-game-stats-area');
+    if (endStatsArea) endStatsArea.classList.remove('hidden');
+
+    // 3. Kendi skorunu Your Score kutusuna yazdır
+    const finalUserScoreVal = document.getElementById('final-user-score-value');
+    if (finalUserScoreVal) finalUserScoreVal.textContent = totalScore;
+
+    // 4. Paylaşma Butonunu aktif et
+    const shareBtn = document.getElementById('btn-share-score');
+    if (shareBtn) {
+        shareBtn.classList.remove('hidden');
+        shareBtn.onclick = () => handleShare(totalScore, rowScores, colScores);
+    }
+    
+    // Firebase gönderimleri ve diğer hesaplamalar
+    submitToFirebase(totalScore);
+    updatePlayerStats(totalScore); 
+
+    // 5. Günün en yüksek skorunu kontrol et
     const dateStr = getLocalDateStr(currentPlayingDate);
     handleDailyTopScore(totalScore, dateStr);
 }
