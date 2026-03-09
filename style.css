@@ -73,10 +73,11 @@ body {
     opacity: 0.6;
 }
 
-/* --- Sub-header (Date) --- */
+/* --- Sub-header (Date & Dev Reset) --- */
 .sub-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 600;
@@ -84,20 +85,21 @@ body {
     border-bottom: 1px solid var(--color-border);
 }
 
-/* --- Board & Grid --- */
+/* --- Board & Grid (Kompakt Tasarım) --- */
 .board-container {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-grow: 1;
-    padding: 20px;
+    padding: 10px 15px; /* Alt ve üst boşluklar daraltıldı */
+    min-height: 0; 
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 5px;
+    gap: 4px; /* Zarafet için 5px'ten 4px'e düşürüldü */
     width: 100%;
     max-width: 350px;
     aspect-ratio: 1 / 1;
@@ -109,7 +111,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2rem;
+    /* Fontlar ekrana göre esner (Min: 1.5rem, Max: 2rem) */
+    font-size: clamp(1.5rem, 6vw, 2rem); 
     font-weight: 700;
     text-transform: uppercase;
     background-color: var(--color-cell-bg);
@@ -127,14 +130,28 @@ body {
     color: var(--color-text);
 }
 
-/* --- Controls Container --- */
+/* --- Draft State (Taslak) --- */
+.cell[data-state="draft"] {
+    border: 2px dashed var(--color-border-focus);
+    color: var(--color-text-muted);
+    background-color: #f8f9fa;
+}
+
+/* --- Controls Container (Kompakt Tasarım) --- */
 .controls-container {
-    padding: 20px;
+    padding: 5px 15px 25px 15px; /* Boşluklar iyice sıkıştırıldı */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.message {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 5px;
 }
 
 .letter-box {
@@ -149,22 +166,8 @@ body {
     border-radius: 8px;
 }
 
-.message {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--color-text-muted);
-}
-
 .hidden {
     display: none !important;
-}
-
-/* --- Draft State & Action Row (UPDATED) --- */
-.cell[data-state="draft"] {
-    border: 2px dashed var(--color-border-focus);
-    color: var(--color-text-muted);
-    background-color: #f8f9fa;
-    /* transform: scale(0.98); <-- BU SATIRI KALDIRDIK, BOYUTLAR EŞİTLENDİ */
 }
 
 /* --- Joker Keyboard --- */
@@ -211,12 +214,13 @@ body {
     max-width: 424px; 
     width: 100%;
     aspect-ratio: 1 / 1;
+    gap: 4px; /* Mobilde taşmayı önlemek için ana grid ile aynı */
 }
 
 .cell.score-cell {
-    /* Font boyutu ve kenarlıklar harf hücreleriyle (cell) birebir eşitlendi */
     border: 2px solid var(--color-border) !important;
-    font-size: 1.75rem !important; /* Harf fontuyla aynı büyüklükte (2rem) */
+    /* Puan fontları da harflerle tamamen eşit esner */
+    font-size: clamp(1.5rem, 6vw, 2rem) !important; 
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
@@ -230,10 +234,11 @@ body {
 .score-9 { background-color: #3b82f6; color: #1a1a1a !important; }
 .score-15 { background-color: #8b5cf6; color: #1a1a1a !important; }
 
-/* En sağ alt köşedeki boş hücre (Sadece burası şeffaf kalacak) */
+/* En sağ alt köşedeki boş hücre */
 .cell.empty-corner {
     background-color: transparent !important;
     border: none !important;
+    cursor: default;
 }
 
 .final-score-text {
@@ -243,4 +248,24 @@ body {
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-top: 5px;
+}
+
+/* --- YENİ: Mobil Optimizasyon (Küçük Ekranlar İçin Zarafet Koruması) --- */
+@media (max-width: 420px) {
+    .cell {
+        border-width: 1.5px; /* Dar ekranda kalın siyahlık oluşmasını engeller */
+    }
+    .grid, .grid.final-grid {
+        gap: 3px; 
+    }
+    .letter-box {
+        width: 52px;
+        height: 52px;
+        font-size: 2rem;
+    }
+    .key-btn {
+        width: 28px;
+        height: 40px;
+        font-size: 14px;
+    }
 }
