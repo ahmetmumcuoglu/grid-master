@@ -363,7 +363,7 @@ function getScoreColorClass(score) {
 }
 
 function calculateAndSaveScore() {
-    let totalScore = 0;
+    let totalScore = 0; // Doğru tanımlama burada
     let allFoundWords = []; // Bütün bulunan kelimeler burada toplanacak
     const GRID_SIZE = 5;
     
@@ -388,13 +388,11 @@ function calculateAndSaveScore() {
         allFoundWords.push(...lineData.words);
     }
 
-        actionMessage.classList.add('final-score-text');
-    
     // YENİ: Oyun bitti, sayfa artık aşağı kaydırılabilir!
     document.body.classList.remove('game-locked'); 
-
-    let totalScore = 0;
     
+    // (BURADAKİ İKİNCİ 'let totalScore = 0;' SATIRINI SİLDİK)
+
     renderFinalGrid(rowScores, colScores);
     
     // YENİ: Kelimeleri temizle, sırala ve ekrana bas
