@@ -412,8 +412,36 @@ function renderFinalGrid(rowScores, colScores) {
     gridEl.appendChild(cornerCell);
 }
 
-function submitToFirebase(score) {
-    console.log("Firebase Upload Ready. Score:", score);
+async function submitToFirebase(score) {
+    if (!userId) {
+        console.error("Hata: Kullanıcı kimliği bulunamadı, skor kaydedilemiyor.");
+        return;
+    }
+
+    // Bugünü YYYY-MM-DD formatında al (Örn: 2026-03-09)
+    const today = new Date();
+    // Zaman dilimi farklılıklarını önlemek için yerel tarihi string yapıyoruz
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`; 
+
+    try {
+        // Veritabanı yolu: users/{userId}/daily_scores/{dateStr}
+        const docRef = doc(db, "users", userId, "daily_scores", dateStr);
+        
+        await setDoc(docRef, {
+            score: score,
+            grid: gridData,
+            date: dateStr,
+            timestamp: new Date()
+        }, { merge: true }); // Eğer aynı gün tekrar oynarsa (Dev Reset vb.) üstüne yazar
+
+        console.log("Skor başarıyla Firebase'e kaydedildi!");
+        
+    } catch (error) {
+        console.error("Firebase'e yazarken hata oluştu: ", error);
+    }
 }
 
 // ==========================================
