@@ -919,8 +919,11 @@ if (closeStats) {
 // ==========================================
 
 async function handleDailyTopScore(userScore, dateStr) {
-    const banner = document.getElementById('daily-top-banner');
-    if (!banner) return;
+    const panel = document.getElementById('final-score-panel');
+    const globalScoreVal = document.getElementById('daily-top-banner');
+    const userScoreBox = document.querySelector('.user-score');
+    
+    if (!panel || !globalScoreVal) return;
 
     try {
         const topScoreRef = doc(db, "daily_stats", dateStr);
@@ -931,21 +934,19 @@ async function handleDailyTopScore(userScore, dateStr) {
             currentTop = docSnap.data().topScore || 0;
         }
 
-        banner.classList.remove('hidden');
+        panel.classList.remove('hidden');
 
-        if (userScore > currentTop) {
-            // 👑 YENİ REKOR! Firebase'i güncelle
+        if (userScore >= currentTop) {
+            // 👑 Yeni rekor!
             await setDoc(topScoreRef, { topScore: userScore }, { merge: true });
-            
-            banner.innerHTML = `👑 NEW DAILY RECORD! (${userScore})`;
-            banner.classList.add('new-record');
+            globalScoreVal.textContent = userScore;
+            userScoreBox.classList.add('new-record'); // Kendi kutunu parlat
         } else {
-            // Sadece mevcut rekoru göster
-            banner.innerHTML = `Today's Top Score: ${currentTop}`;
-            banner.classList.remove('new-record');
+            globalScoreVal.textContent = currentTop;
+            userScoreBox.classList.remove('new-record');
         }
 
     } catch (error) {
-        console.error("Error handling daily top score:", error);
+        console.error("Error handling top score:", error);
     }
 }
