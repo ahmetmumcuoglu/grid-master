@@ -99,6 +99,37 @@
             </div>
         </div>
     </div>
+
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-content stats-content">
+            <button id="close-stats" class="modal-close">&times;</button>
+            <h2 class="modal-title">STATISTICS</h2>
+            
+            <div class="stats-summary">
+                <div class="stat-box">
+                    <span id="stat-played" class="stat-value">0</span>
+                    <span class="stat-label">Played</span>
+                </div>
+                <div class="stat-box">
+                    <span id="stat-streak" class="stat-value">0</span>
+                    <span class="stat-label">Current Streak</span>
+                </div>
+                <div class="stat-box">
+                    <span id="stat-max-streak" class="stat-value">0</span>
+                    <span class="stat-label">Max Streak</span>
+                </div>
+            </div>
+
+            <h3 class="stats-sub-title">Score Distribution</h3>
+            <div id="dist-container" class="dist-container">
+                <p class="def-text">Play a game to see your distribution!</p>
+            </div>
+
+            <div class="personal-best-banner">
+                YOUR BEST: <span id="personal-best-value">0</span>
+            </div>
+        </div>
+    </div>
     
     <script type="module" src="engine.js"></script>
 </body>
