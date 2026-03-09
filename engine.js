@@ -257,30 +257,45 @@ function handleCellClick(index) {
 }
 
 // ==========================================
-// 5. SCORING & FINAL GRID RENDERING
+// 5. SCORING & FINAL GRID RENDERING (UPDATED)
 // ==========================================
 
 function getLineString(indices) {
     return indices.map(index => gridData[index] || ' ').join('');
 }
 
-function getSegmentScore(text) {
-    let bestScore = 0;
-    
-    for (let len = 5; len >= 2; len--) {
-        for (let i = 0; i <= text.length - len; i++) {
-            const sub = text.substring(i, i + len);
-            if (dictionary.has(sub)) {
-                if (SCORE_RULES[len] > bestScore) {
-                    bestScore = SCORE_RULES[len];
+// YENİ: Bir satır veya sütundaki TÜM geçerli kelimeleri bulur ve toplar
+function calculateLineScore(text) {
+    let lineTotal = 0;
+    let i = 0;
+
+    while (i < text.length) {
+        let foundWordLength = 0;
+        let foundScore = 0;
+
+        // Mevcut pozisyondan (i) başlayan en uzun kelimeyi ara (5'ten 2'ye)
+        for (let len = 5; len >= 2; len--) {
+            if (i + len <= text.length) {
+                const sub = text.substring(i, i + len);
+                if (dictionary.has(sub)) {
+                    foundWordLength = len;
+                    foundScore = SCORE_RULES[len];
+                    break; // En uzun kelimeyi bulduğumuzda bu pozisyon için aramayı bitir
                 }
             }
         }
+
+        if (foundWordLength > 0) {
+            lineTotal += foundScore;
+            i += foundWordLength; // Kelimenin bittiği yerden devam et (overlapping önlenir)
+        } else {
+            i++; // Kelime yoksa bir sonraki harfe geç
+        }
     }
-    return bestScore;
+    return lineTotal;
 }
 
-// YENİ: Puana göre eşleşen CSS sınıfını döndürür
+// Puana göre eşleşen CSS sınıfını döndürür
 function getScoreColorClass(score) {
     if (score >= 15) return 'score-15';
     if (score >= 9) return 'score-9';
@@ -302,31 +317,21 @@ function calculateAndSaveScore() {
     for (let row = 0; row < GRID_SIZE; row++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
         const lineStr = getLineString(indices);
-        const segments = lineStr.split(' ');
-        segments.forEach(seg => {
-            if (seg.length >= 2) {
-                const score = getSegmentScore(seg);
-                rowScores[row] += score;
-                totalScore += score;
-            }
-        });
+        const score = calculateLineScore(lineStr);
+        rowScores[row] = score;
+        totalScore += score;
     }
 
     // Check Columns
     for (let col = 0; col < GRID_SIZE; col++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
         const lineStr = getLineString(indices);
-        const segments = lineStr.split(' ');
-        segments.forEach(seg => {
-            if (seg.length >= 2) {
-                const score = getSegmentScore(seg);
-                colScores[col] += score;
-                totalScore += score;
-            }
-        });
+        const score = calculateLineScore(lineStr);
+        colScores[col] = score;
+        totalScore += score;
     }
 
-    // YENİ: Temiz ve büyük skor yazısı
+    // Temiz ve şık skor yazısı
     actionMessage.textContent = `Your Score: ${totalScore}`;
     actionMessage.classList.add('final-score-text');
     
@@ -352,7 +357,6 @@ function renderFinalGrid(rowScores, colScores) {
             const rowIndex = Math.floor(i / 5);
             const score = rowScores[rowIndex];
             const scoreCell = document.createElement('div');
-            // Renk sınıfını dinamik olarak ekliyoruz
             scoreCell.className = `cell score-cell ${getScoreColorClass(score)}`;
             scoreCell.textContent = score;
             gridEl.appendChild(scoreCell);
