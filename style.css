@@ -794,3 +794,12 @@ body.game-locked .game-app {
     height: 100vh !important;
     justify-content: flex-start; /* İçeriği ekrana eşit yayar */
 }
+
+#btn-help svg {
+    display: block;
+    color: var(--color-text); /* Header rengine uyum sağlar */
+}
+
+#btn-help:hover svg {
+    opacity: 0.7;
+}
