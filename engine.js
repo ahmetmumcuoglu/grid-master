@@ -1,7 +1,7 @@
 import { firebaseConfig } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
 // 0. FIREBASE INITIALIZATION & AUTH
@@ -403,7 +403,7 @@ if (shareBtn) {
 }
     
     submitToFirebase(totalScore);
-    
+    updatePlayerStats(totalScore);
 }
 
 // ... (renderFinalGrid fonksiyonu aynı kalıyor) ...
@@ -825,7 +825,7 @@ async function showStatsModal() {
     
     // Yükleniyor durumu
     distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Loading stats...</p>';
-    statsModal.style.display = 'flex';
+    statsModal.classList.add('active');
 
     // Kullanıcı girişi kontrolü (Senin Firebase auth yapına göre uyarla)
     const user = auth.currentUser; 
@@ -892,28 +892,20 @@ async function showStatsModal() {
     });
 }
 
-function setupEventListeners() {
-    // ... diğer butonların kodları (Help, Archive vs.) ...
+// ==========================================
+// 12. STATS MODAL EVENT LISTENERS
+// ==========================================
 
-    // İstatistik Modalı Butonları buraya:
-    const btnStats = document.getElementById('btn-stats');
-    const closeStats = document.getElementById('close-stats');
-    const statsModal = document.getElementById('stats-modal');
+const btnStats = document.getElementById('btn-stats');
+const closeStats = document.getElementById('close-stats');
+const statsModal = document.getElementById('stats-modal');
 
-    if (btnStats) {
-        btnStats.addEventListener('click', showStatsModal);
-    }
+if (btnStats) {
+    btnStats.addEventListener('click', showStatsModal);
+}
 
-    if (closeStats) {
-        closeStats.addEventListener('click', () => {
-            statsModal.style.display = 'none';
-        });
-    }
-
-    // Modal dışına tıklayınca kapanması için
-    window.addEventListener('click', (e) => {
-        if (e.target === statsModal) {
-            statsModal.style.display = 'none';
-        }
+if (closeStats) {
+    closeStats.addEventListener('click', () => {
+        statsModal.classList.remove('active'); // Düzeltildi
     });
 }
