@@ -26,14 +26,18 @@ body {
     font-family: var(--font-sans);
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    /* YENİ: Mobil tarayıcı çubuklarını hesaplayan dinamik yükseklik ve kaydırma kilidi */
+    height: 100dvh; 
+    overflow: hidden; 
 }
 
 .game-app {
     width: 100%;
     max-width: 500px;
+    height: 100%; /* Kilitli ekranın içini tam doldurur */
     display: flex;
     flex-direction: column;
+    justify-content: space-between; /* Öğeleri yukarıdan aşağıya eşit iter */
 }
 
 /* --- Header Section --- */
@@ -41,7 +45,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 15px; /* 12px 20px idi, daraltıldı */
+    padding: 8px 15px;
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -78,21 +82,21 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 15px; /* 10px 20px idi, daraltıldı */
+    padding: 5px 15px;
     font-size: 14px;
     font-weight: 600;
     color: var(--color-text-muted);
     border-bottom: 1px solid var(--color-border);
 }
 
-/* --- Board & Grid (Kompakt Tasarım) --- */
+/* --- Board & Grid --- */
 .board-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1;
-    padding: 5px 10px; /* İyice daraltıldı */
-    min-height: 0; 
+    flex: 1; /* Ortadaki boşluğu esnek bir şekilde kaplar */
+    min-height: 0; /* Taşıp kaydırmayı engeller */
+    padding: 0 10px; /* Üst/Alt padding sıfırlandı, kendi ortalanacak */
 }
 
 .grid {
@@ -100,9 +104,8 @@ body {
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
     gap: 4px;
-    width: 100%;
-    /* SİHİRLİ KOD: Genişlik 350px'i geçmesin AMA ekran boyunun %45'ini de geçmesin! */
-    max-width: min(350px, 45vh); 
+    /* SİHİRLİ KOD: Genişlik ekranın %100'ünü geçmesin, yüksekliğin de %45'ini geçmesin */
+    width: min(100%, 45dvh); 
     aspect-ratio: 1 / 1;
 }
 
@@ -112,7 +115,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Fontlar ekrana göre esner (Min: 1.5rem, Max: 2rem) */
     font-size: clamp(1.5rem, 6vw, 2rem); 
     font-weight: 700;
     text-transform: uppercase;
@@ -138,13 +140,13 @@ body {
     background-color: #f8f9fa;
 }
 
-/* --- Controls Container (Kompakt Tasarım) --- */
+/* --- Controls Container --- */
 .controls-container {
-    padding: 0px 15px 10px 15px; /* Üst boşluk tamamen sıfırlandı */
+    padding: 0px 15px 15px 15px; /* Alt boşluk güvenli alana çekildi */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px; /* 10px'ten 5px'e düşürüldü */
+    gap: 5px;
 }
 
 .message {
@@ -179,7 +181,7 @@ body {
     gap: 6px;
     width: 100%;
     max-width: 350px;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .key-btn {
@@ -208,26 +210,23 @@ body {
     color: var(--color-bg);
 }
 
-/* --- Final 6x6 Score Grid (Bütünleşik Görünüm) --- */
+/* --- Final 6x6 Score Grid --- */
 .grid.final-grid {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    /* 6x6 grid için ekran boyunun %55'ini geçmesine izin vermiyoruz */
-    max-width: min(424px, 55vh); 
-    width: 100%;
+    /* Büyüyen tablo için yüksekliğin %55'ine kadar izin verdik */
+    width: min(100%, 55dvh); 
     aspect-ratio: 1 / 1;
     gap: 4px; 
 }
 
 .cell.score-cell {
     border: 2px solid var(--color-border) !important;
-    /* Puan fontları da harflerle tamamen eşit esner */
     font-size: clamp(1.5rem, 6vw, 2rem) !important; 
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
 
-/* Puan hücrelerindeki rakamların rengi ve netliği */
 .score-0 { background-color: #94a3b8; color: #1a1a1a !important; }
 .score-2 { background-color: #f97316; color: #1a1a1a !important; }
 .score-4 { background-color: #facc15; color: #1a1a1a !important; }
@@ -236,7 +235,6 @@ body {
 .score-9 { background-color: #3b82f6; color: #1a1a1a !important; }
 .score-15 { background-color: #8b5cf6; color: #1a1a1a !important; }
 
-/* En sağ alt köşedeki boş hücre */
 .cell.empty-corner {
     background-color: transparent !important;
     border: none !important;
@@ -252,22 +250,10 @@ body {
     margin-top: 5px;
 }
 
-/* --- YENİ: Mobil Optimizasyon (Küçük Ekranlar İçin Zarafet Koruması) --- */
+/* --- Mobil Optimizasyon --- */
 @media (max-width: 420px) {
-    .cell {
-        border-width: 1.5px; /* Dar ekranda kalın siyahlık oluşmasını engeller */
-    }
-    .grid, .grid.final-grid {
-        gap: 3px; 
-    }
-    .letter-box {
-        width: 52px;
-        height: 52px;
-        font-size: 2rem;
-    }
-    .key-btn {
-        width: 28px;
-        height: 40px;
-        font-size: 14px;
-    }
+    .cell { border-width: 1.5px; }
+    .grid, .grid.final-grid { gap: 3px; }
+    .letter-box { width: 52px; height: 52px; font-size: 2rem; }
+    .key-btn { width: 28px; height: 40px; font-size: 14px; }
 }
