@@ -392,8 +392,17 @@ function calculateAndSaveScore() {
     // YENİ: Kelimeleri temizle, sırala ve ekrana bas
     const uniqueWords = [...new Set(allFoundWords)].sort((a, b) => b.length - a.length || a.localeCompare(b));
     renderWordsList(uniqueWords);
+
+    const shareContainer = document.getElementById('share-container');
+    const shareBtn = document.getElementById('btn-share-score');
+    
+    if (shareContainer && shareBtn) {
+        shareContainer.classList.remove('hidden');
+        shareBtn.onclick = () => handleShare(totalScore);
+    }
     
     submitToFirebase(totalScore);
+    
 }
 
 // ... (renderFinalGrid fonksiyonu aynı kalıyor) ...
