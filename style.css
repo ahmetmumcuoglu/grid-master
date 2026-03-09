@@ -703,3 +703,15 @@ body {
     .stats-flex-container { gap: 10px; }
     .stats-value { font-size: 22px; }
 }
+
+/* --- Oyun İçi Ekran Kilidi --- */
+body.game-locked {
+    overflow: hidden !important;
+    height: 100vh !important;
+    touch-action: none; /* Mobilde yukarı/aşağı sekmeyi (bounce) engeller */
+}
+
+body.game-locked .game-app {
+    height: 100vh !important;
+    justify-content: space-between; /* İçeriği ekrana eşit yayar */
+}
