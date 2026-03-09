@@ -622,3 +622,61 @@ body {
     0% { transform: scale(0.9); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* --- New Score Panel System --- */
+.score-panel {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.score-panel.hidden {
+    display: none;
+}
+
+.score-box {
+    flex: 1;
+    max-width: 140px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.score-box .label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.score-box .value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+/* Rekor Kırıldığında Parlama Efekti */
+.score-box.new-record {
+    background-color: #fef08a;
+    border-color: #facc15;
+    transform: scale(1.05);
+}
+
+.score-box.new-record .value {
+    color: #854d0e;
+}
+
+/* Score Panel mobilde yan yana kalsın diye gap'i küçültüyoruz */
+@media (max-width: 480px) {
+    .score-panel { gap: 8px; }
+    .score-box .value { font-size: 20px; }
+}
