@@ -43,15 +43,23 @@
         </main>
 
         <div class="controls-container">
-            <div id="action-message" class="message">Loading dictionary...</div>
-            <div id="daily-top-banner" class="daily-top-banner hidden"></div>
-            <div id="current-letter-box" class="letter-box hidden"></div>
-            <div id="joker-keyboard" class="keyboard-container hidden"></div>
-            
-            <div id="words-list-container" class="words-container hidden"></div>
-            
-            <button id="btn-dev-reset" style="background-color: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; letter-spacing: 1px; margin-top: 10px;">DEV RESET</button>
+    <div id="final-score-panel" class="score-panel hidden">
+        <div class="score-box user-score">
+            <span class="label">YOUR SCORE</span>
+            <span id="action-message" class="value">0</span>
         </div>
+        <div class="score-box global-score">
+            <span class="label">TODAY'S BEST</span>
+            <span id="daily-top-banner" class="value">0</span>
+        </div>
+    </div>
+
+    <div id="current-letter-box" class="letter-box hidden"></div>
+    <div id="joker-keyboard" class="keyboard-container hidden"></div>
+    <div id="words-list-container" class="words-container hidden"></div>
+    
+    <button id="btn-dev-reset" class="dev-reset-btn">DEV RESET</button>
+</div>
         
     </div> <div id="dictionary-modal" class="modal-overlay">
         <div class="modal-content">
