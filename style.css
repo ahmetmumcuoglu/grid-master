@@ -28,13 +28,15 @@ body {
     justify-content: center;
     /* YENİ: Mobil tarayıcı çubuklarını hesaplayan dinamik yükseklik ve kaydırma kilidi */
     height: 100dvh; 
-    overflow: hidden; 
+    overflow-y: auto; 
+    overscroll-behavior-y: none; /* Mobilde sekmeyi önler */ 
 }
 
 .game-app {
     width: 100%;
     max-width: 500px;
-    height: 100%; /* Kilitli ekranın içini tam doldurur */
+    margin: 0 auto;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* Öğeleri yukarıdan aşağıya eşit iter */
