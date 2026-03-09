@@ -404,6 +404,10 @@ if (shareBtn) {
     
     submitToFirebase(totalScore);
     updatePlayerStats(totalScore);
+
+    // YENİ: Günün en yüksek skorunu kontrol et ve ekrana bas
+    const dateStr = getLocalDateStr(currentPlayingDate);
+    handleDailyTopScore(totalScore, dateStr);
 }
 
 // ... (renderFinalGrid fonksiyonu aynı kalıyor) ...
@@ -908,4 +912,40 @@ if (closeStats) {
     closeStats.addEventListener('click', () => {
         statsModal.classList.remove('active'); // Düzeltildi
     });
+}
+
+// ==========================================
+// 13. DAILY GLOBAL TOP SCORE
+// ==========================================
+
+async function handleDailyTopScore(userScore, dateStr) {
+    const banner = document.getElementById('daily-top-banner');
+    if (!banner) return;
+
+    try {
+        const topScoreRef = doc(db, "daily_stats", dateStr);
+        const docSnap = await getDoc(topScoreRef);
+        
+        let currentTop = 0;
+        if (docSnap.exists()) {
+            currentTop = docSnap.data().topScore || 0;
+        }
+
+        banner.classList.remove('hidden');
+
+        if (userScore > currentTop) {
+            // 👑 YENİ REKOR! Firebase'i güncelle
+            await setDoc(topScoreRef, { topScore: userScore }, { merge: true });
+            
+            banner.innerHTML = `👑 NEW DAILY RECORD! (${userScore})`;
+            banner.classList.add('new-record');
+        } else {
+            // Sadece mevcut rekoru göster
+            banner.innerHTML = `Today's Top Score: ${currentTop}`;
+            banner.classList.remove('new-record');
+        }
+
+    } catch (error) {
+        console.error("Error handling daily top score:", error);
+    }
 }
