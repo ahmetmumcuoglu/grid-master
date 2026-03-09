@@ -307,12 +307,11 @@ body {
     .grid.final-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 0px; /* Bitişiklik için sıfır kalsın */
+        gap: 0px; 
         width: 90%; 
         max-width: 360px;
         margin: 20px auto; 
         padding: 0;
-        /* Dış çerçeveyi belirginleştir */
         border: 1px solid var(--color-border); 
     }
     
@@ -321,27 +320,30 @@ body {
         aspect-ratio: 1 / 1;
         height: auto;
         font-size: 18px;
-        /* Çizgileri geri getir: Her hücrenin sağ ve alt kenarlığı olsun */
         border: 1px solid var(--color-border); 
-        box-sizing: border-box; /* Kenarlığın kutu boyutunu etkilememesi için */
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: white; /* Hücrelerin içini doldur ki şeffaf kalmasınlar */
+        background-color: #ffffff; /* Normal hücreler beyaz */
     }
 
-    /* Puan renklerinin (score-15, score-9 vb.) görünmesini sağlayan kritik ekleme */
+    /* Skor Hücreleri: Renklerin gelmesi için background-color'ı serbest bırakıyoruz */
     .grid.final-grid .cell.score-cell {
-        font-size: 14px;
-        font-weight: bold;
-        /* JS ile eklediğimiz arka plan renklerini zorla göster (important) */
-        background-image: none !important; 
+        font-size: 13px; /* Font 1 kademe daha küçültüldü (14px'den 13px'e) */
+        font-weight: 800;
+        color: white; /* Rakamların renkli kutu içinde okunması için beyaz yapıyoruz */
+        text-shadow: 0px 1px 2px rgba(0,0,0,0.2); /* Okunabilirliği artırmak için hafif gölge */
     }
 
-    /* Puan hücreleri için özel border yönetimi */
-    .grid.final-grid .score-cell {
-        border: 1px solid rgba(0,0,0,0.1); 
-    }
+    /* Önemli: Skor renklerinin beyaz arka planı ezmesi için öncelik veriyoruz */
+    .grid.final-grid .score-2 { background-color: #f97316 !important; } /* Turuncu */
+    .grid.final-grid .score-4 { background-color: #facc15 !important; } /* Sarı */
+    .grid.final-grid .score-5 { background-color: #22c55e !important; } /* Yeşil */
+    .grid.final-grid .score-7 { background-color: #14b8a6 !important; } /* Teal */
+    .grid.final-grid .score-9 { background-color: #3b82f6 !important; } /* Mavi */
+    .grid.final-grid .score-15 { background-color: #a855f7 !important; } /* Mor */
+    .grid.final-grid .score-0 { background-color: #94a3b8 !important; } /* Gri */
 }
 
 /* --- YENİ: Words Found List (Kelime Listesi) --- */
