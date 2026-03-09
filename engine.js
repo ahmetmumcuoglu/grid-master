@@ -36,6 +36,7 @@ let currentMove = 0;
 let isGameActive = false;
 let draftIndex = null;
 let jokerLetter = null;
+let currentPlayingDate = new Date();
 
 const LETTER_POOL = {
     'A': 9, 'B': 2, 'C': 2, 'D': 4, 'E': 12, 'F': 2, 'G': 3, 'H': 2,
@@ -91,27 +92,34 @@ async function initGame() {
     }
 }
 
-// YENİ: Oyunu tarayıcı hafızasından yükler
+// YENİ: Tarihleri YYYY-MM-DD formatında standartlaştırmak için yardımcı fonksiyon
+function getLocalDateStr(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function loadGameState() {
     const savedState = localStorage.getItem('gridMaster_dailyState');
-    const todayStr = new Date().toDateString();
-
+    
     if (savedState) {
         const state = JSON.parse(savedState);
-        // Eğer kayıt bugüne aitse yükle, dünün kaydıysa sil
-        if (state.date === todayStr) {
-            gridData = state.grid;
-            currentMove = state.move;
-        } else {
-            localStorage.removeItem('gridMaster_dailyState');
-        }
+        // Hafızadaki kaydın tarihine göre oyunun "Şu Anki" zamanını ayarla
+        const parts = state.dateStr.split('-');
+        currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        
+        gridData = state.grid;
+        currentMove = state.move;
+    } else {
+        // Kayıt yoksa her zaman "Bugün" ile başla
+        currentPlayingDate = new Date();
     }
 }
 
-// YENİ: Hamle yapıldıkça oyunu tarayıcı hafızasına kaydeder
 function saveGameState() {
     const state = {
-        date: new Date().toDateString(),
+        dateStr: getLocalDateStr(currentPlayingDate),
         grid: gridData,
         move: currentMove
     };
@@ -122,16 +130,20 @@ function saveGameState() {
 // 3. DAILY SEEDED RNG LOGIC
 // ==========================================
 function setupDailyContext() {
-    const today = new Date();
+    // SİHİR BURADA: Artık bugünü değil, oynanan tarihi kullanıyoruz!
     const options = { month: 'long', day: 'numeric', year: 'numeric' };
-    dateDisplay.textContent = today.toLocaleDateString('en-US', options);
+    dateDisplay.textContent = currentPlayingDate.toLocaleDateString('en-US', options);
     
-    const startDate = new Date("2026-03-06");
-    const diffTime = Math.abs(today - startDate);
+    const startDate = new Date("2026-03-06T00:00:00");
+    const startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const currentMidnight = new Date(currentPlayingDate.getFullYear(), currentPlayingDate.getMonth(), currentPlayingDate.getDate());
+    
+    const diffTime = Math.abs(currentMidnight - startMidnight);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     challengeDisplay.textContent = `No. ${diffDays}`;
     
-    const seed = (today.getFullYear() * 10000) + ((today.getMonth() + 1) * 100) + today.getDate();
+    // Geçmiş tarihe göre benzersiz tohum (seed) üret
+    const seed = (currentPlayingDate.getFullYear() * 10000) + ((currentPlayingDate.getMonth() + 1) * 100) + currentPlayingDate.getDate();
     dailySequence = generateDailyLetters(seed);
 }
 
@@ -413,34 +425,23 @@ function renderFinalGrid(rowScores, colScores) {
 }
 
 async function submitToFirebase(score) {
-    if (!userId) {
-        console.error("Hata: Kullanıcı kimliği bulunamadı, skor kaydedilemiyor.");
-        return;
-    }
+    if (!userId) return;
 
-    // Bugünü YYYY-MM-DD formatında al (Örn: 2026-03-09)
-    const today = new Date();
-    // Zaman dilimi farklılıklarını önlemek için yerel tarihi string yapıyoruz
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`; 
+    // YENİ: Bugün yerine, oynanan tarihe (currentPlayingDate) kaydet
+    const dateStr = getLocalDateStr(currentPlayingDate);
 
     try {
-        // Veritabanı yolu: users/{userId}/daily_scores/{dateStr}
         const docRef = doc(db, "users", userId, "daily_scores", dateStr);
-        
         await setDoc(docRef, {
             score: score,
             grid: gridData,
             date: dateStr,
-            timestamp: new Date()
-        }, { merge: true }); // Eğer aynı gün tekrar oynarsa (Dev Reset vb.) üstüne yazar
+            timestamp: new Date() // Bu kaydın yapıldığı gerçek an
+        }, { merge: true });
 
-        console.log("Skor başarıyla Firebase'e kaydedildi!");
-        
-    } catch (error) {
-        console.error("Firebase'e yazarken hata oluştu: ", error);
+        console.log("Archive/Daily Score saved to cloud:", dateStr);
+    } catch (e) {
+        console.error("Error saving score: ", e);
     }
 }
 
@@ -614,4 +615,47 @@ function renderArchiveUI(userScores) {
         archiveList.appendChild(itemDiv);
         currentDate.setDate(currentDate.getDate() - 1);
     }
+}
+
+// Arşiv listesi içindeki "Play" butonlarını dinle (Event Delegation)
+if (archiveList) {
+    archiveList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('archive-play-btn')) {
+            const dateStr = e.target.getAttribute('data-date');
+            archiveModal.classList.remove('active'); // Modalı kapat
+            startSpecificDateGame(dateStr); // Zaman makinesini çalıştır!
+        }
+    });
+}
+
+// YENİ: Geçmiş bir tarihi başlatma fonksiyonu (Zaman Makinesi)
+function startSpecificDateGame(dateStr) {
+    // 1. Tarihi ayarla (YYYY-MM-DD formatından)
+    const parts = dateStr.split('-');
+    currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    
+    // 2. Oyunu Sıfırla
+    gridData = Array(25).fill(null);
+    currentMove = 0;
+    isGameActive = true;
+    draftIndex = null;
+    jokerLetter = null;
+    
+    // 3. Hafızayı (Local Storage) temizle ki eski oyunla çakışmasın
+    localStorage.removeItem('gridMaster_dailyState'); 
+    
+    // 4. Oyun Arayüzünü Yeni Tarihe Göre Çiz
+    setupDailyContext();
+    
+    // (Oyun sonu ekranı kalmışsa temizle)
+    gridEl.classList.remove('final-grid');
+    document.getElementById('words-list-container').classList.add('hidden');
+    
+    renderGrid();
+    updateUI();
+    saveGameState(); // Temiz haliyle yeni tarihi hemen LocalStorage'a kaydet
+    
+    // Yeni oyun mesajı
+    const actionMessage = document.getElementById('action-message');
+    if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
 }
