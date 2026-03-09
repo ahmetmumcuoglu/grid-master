@@ -37,6 +37,7 @@ let isGameActive = false;
 let draftIndex = null;
 let jokerLetter = null;
 let currentPlayingDate = new Date();
+let cachedUserStats = null;
 
 const LETTER_POOL = {
     'A': 9, 'B': 2, 'C': 2, 'D': 4, 'E': 12, 'F': 2, 'G': 3, 'H': 2,
@@ -749,4 +750,155 @@ async function handleShare(totalScore, rowScores, colScores) {
             setTimeout(() => { btn.innerHTML = originalText; }, 2000);
         } catch (err) { alert("Could not copy."); }
     }
+}
+
+// ==========================================
+// 10. STATISTICS & STREAK LOGIC
+// ==========================================
+
+async function updatePlayerStats(currentScore) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const statsRef = doc(db, "users", user.uid, "user_summary", "data");
+    const statsSnap = await getDoc(statsRef);
+    
+    let stats = {
+        played: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        personalBest: 0,
+        lastPlayedDate: null,
+        distribution: [0, 0, 0, 0, 0] // [0-40, 41-60, 61-80, 81-100, 101+]
+    };
+
+    if (statsSnap.exists()) {
+        stats = statsSnap.data();
+    }
+
+    // 1. Oynanma Sayısı
+    stats.played++;
+
+    // 2. Kişisel Rekor
+    if (currentScore > stats.personalBest) {
+        stats.personalBest = currentScore;
+    }
+
+    // 3. Streak Hesaplama
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (stats.lastPlayedDate === yesterdayStr) {
+        stats.currentStreak++;
+    } else if (stats.lastPlayedDate !== todayStr) {
+        stats.currentStreak = 1;
+    }
+    
+    if (stats.currentStreak > stats.maxStreak) {
+        stats.maxStreak = stats.currentStreak;
+    }
+    stats.lastPlayedDate = todayStr;
+
+    // 4. Skor Dağılımı
+    if (currentScore <= 40) stats.distribution[0]++;
+    else if (currentScore <= 60) stats.distribution[1]++;
+    else if (currentScore <= 80) stats.distribution[2]++;
+    else if (currentScore <= 100) stats.distribution[3]++;
+    else stats.distribution[4]++;
+
+    // Firebase'e kaydet
+    await setDoc(statsRef, stats);
+    return stats;
+}
+
+// 5. Günün En Yüksek Skorunu Güncelle (Global)
+async function updateDailyTopScore(score) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const topScoreRef = doc(db, "daily_stats", todayStr);
+    
+    // Atomik işlem: Sadece skor daha büyükse güncelle
+    await setDoc(topScoreRef, { 
+        topScore: score 
+    }, { merge: true }); 
+    // Not: Gerçek senaryoda burada Firestore 'transaction' veya 'runTransaction' 
+    // kullanarak sadece skor büyükse yazma kontrolü yapmak daha güvenlidir.
+}
+
+// ==========================================
+// 11. STATISTICS MODAL & LOGIC
+// ==========================================
+
+async function showStatsModal() {
+    const statsModal = document.getElementById('stats-modal');
+    const distContainer = document.getElementById('dist-container');
+    
+    // Yükleniyor durumu
+    distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Loading stats...</p>';
+    statsModal.style.display = 'flex';
+
+    // Kullanıcı girişi kontrolü (Senin Firebase auth yapına göre uyarla)
+    const user = auth.currentUser; 
+    if (!user) {
+        distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Please log in to see stats.</p>';
+        return;
+    }
+
+    // Eğer veri daha önce çekilmediyse Firebase'den çek
+    if (!cachedUserStats) {
+        try {
+            const statsRef = doc(db, "users", user.uid, "user_summary", "data");
+            const statsSnap = await getDoc(statsRef);
+            
+            if (statsSnap.exists()) {
+                cachedUserStats = statsSnap.data();
+            } else {
+                // Hiç oynamamış kullanıcı için varsayılan değerler
+                cachedUserStats = {
+                    played: 0,
+                    currentStreak: 0,
+                    maxStreak: 0,
+                    personalBest: 0,
+                    distribution: [0, 0, 0, 0, 0]
+                };
+            }
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+            distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Could not load stats.</p>';
+            return;
+        }
+    }
+
+    // --- Değerleri Ekrana Yazdır ---
+    document.getElementById('stat-played').textContent = cachedUserStats.played;
+    document.getElementById('stat-streak').textContent = cachedUserStats.currentStreak;
+    document.getElementById('stat-max-streak').textContent = cachedUserStats.maxStreak;
+    document.getElementById('personal-best-value').textContent = cachedUserStats.personalBest;
+
+    // --- Dağılım Grafiğini (Bar Chart) Çiz ---
+    distContainer.innerHTML = ''; // Loading yazısını temizle
+    
+    // Senin belirlediğin aralıklar:
+    const labels = ['0-40', '41-60', '61-80', '81-100', '101+'];
+    const maxVal = Math.max(...cachedUserStats.distribution); // En çok hangi aralıkta skor var?
+
+    cachedUserStats.distribution.forEach((count, index) => {
+        // En yüksek bar %100 genişlikte olur, diğerleri ona göre oranlanır.
+        // Hiç yoksa bile barın görünmesi için minimum %7 genişlik veriyoruz.
+        const percentage = maxVal > 0 ? (count / maxVal) * 100 : 0;
+        const widthPercent = Math.max(7, percentage); 
+        
+        // Eğer o anki skor bu bar içindeyse, ona Wordle yeşili (highlight) sınıfı ekleyebiliriz
+        // Şimdilik hepsi standart gri renkte gelecek (CSS'teki .dist-bar)
+        const barHtml = `
+            <div class="dist-bar-wrapper">
+                <div style="width: 55px; text-align: right; padding-right: 5px;">${labels[index]}</div>
+                <div style="flex-grow: 1;">
+                    <div class="dist-bar" style="width: ${widthPercent}%;">${count}</div>
+                </div>
+            </div>
+        `;
+        distContainer.insertAdjacentHTML('beforeend', barHtml);
+    });
 }
