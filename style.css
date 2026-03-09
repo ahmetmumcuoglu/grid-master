@@ -302,6 +302,25 @@ body {
         font-size: 14px;
         padding: 5px;
     }
+    
+    /* --- 6x6 Final Grid'i Zarifleştirme (Sadece Mobilde) --- */
+    .grid.final-grid {
+        gap: 4px; /* Hücreler arası boşluğu milimetrik daralt */
+        padding: 0 15px; /* Sağdan ve soldan kesinlikle boşluk bırak, ekrana yapışmasın */
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .grid.final-grid .cell {
+        width: 42px;  /* 50px yerine daha zarif, küçük kutular */
+        height: 42px;
+        font-size: 20px; /* Fontu da kutuya göre orantıla */
+        border-width: 1.5px; /* Kenarlıklar çok kalın durmasın */
+    }
+    
+    .grid.final-grid .score-cell {
+        font-size: 16px; /* Puan rakamları harflerden bir tık küçük olsun ki hiyerarşi kurulsun */
+    }
 }
 
 /* --- YENİ: Words Found List (Kelime Listesi) --- */
