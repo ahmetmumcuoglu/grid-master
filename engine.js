@@ -305,38 +305,45 @@ function getLineString(indices) {
     return indices.map(index => gridData[index] || ' ').join('');
 }
 
-// YENİ: Artık sadece skoru değil, bulunan kelimeleri de dizi olarak döndürüyor
+// YENİ: Maksimum puanı garantileyen Rekürsif (Özyineli) Algoritma
 function calculateLineData(text) {
-    let lineTotal = 0;
-    let foundWords = [];
-    let i = 0;
+    
+    // Satırdaki en yüksek puanlı kombinasyonu bulan iç fonksiyon
+    function findMaxScore(index) {
+        // Eğer satırın sonuna geldiysek puan 0, kelime yok
+        if (index >= text.length) {
+            return { score: 0, words: [] };
+        }
 
-    while (i < text.length) {
-        let foundWordLength = 0;
-        let foundScore = 0;
-        let foundWordStr = "";
+        // 1. SEÇENEK: Bu harfi atla (hiçbir kelimeye dahil etme) ve sonrasına bak
+        let bestResult = findMaxScore(index + 1);
 
-        for (let len = 5; len >= 2; len--) {
-            if (i + len <= text.length) {
-                const sub = text.substring(i, i + len);
+        // 2. SEÇENEK: Bu harften başlayan 2, 3, 4, 5 harfli geçerli kelimeleri dene
+        for (let len = 2; len <= 5; len++) {
+            if (index + len <= text.length) {
+                const sub = text.substring(index, index + len);
+                
+                // Eğer sözlükte varsa
                 if (dictionary.has(sub)) {
-                    foundWordLength = len;
-                    foundScore = SCORE_RULES[len];
-                    foundWordStr = sub;
-                    break; 
+                    // Bu kelimeden SONRAKİ harflerin getireceği maksimum puanı hesapla
+                    const nextResult = findMaxScore(index + len);
+                    const currentTotalScore = SCORE_RULES[len] + nextResult.score;
+
+                    // Eğer bu kombinasyon (Örn: TO + NOG) şu ana kadarki en iyisinden (Örn: TON) yüksekse, yeni lider bu!
+                    if (currentTotalScore > bestResult.score) {
+                        bestResult = {
+                            score: currentTotalScore,
+                            words: [sub, ...nextResult.words]
+                        };
+                    }
                 }
             }
         }
-
-        if (foundWordLength > 0) {
-            lineTotal += foundScore;
-            foundWords.push(foundWordStr); // Kelimeyi hafızaya al
-            i += foundWordLength; 
-        } else {
-            i++; 
-        }
+        return bestResult;
     }
-    return { score: lineTotal, words: foundWords };
+
+    // Fonksiyonu satırın 0. indeksinden (en başından) başlat
+    return findMaxScore(0);
 }
 
 // ... (getScoreColorClass fonksiyonu aynı kalıyor) ...
