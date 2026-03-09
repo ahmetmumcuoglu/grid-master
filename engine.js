@@ -693,3 +693,59 @@ document.addEventListener('click', (e) => {
         e.target.classList.remove('active');
     }
 });
+
+// ==========================================
+// 10. SHARE FUNCTIONALITY
+// ==========================================
+
+function generateShareText(totalScore) {
+    const dateStr = dateDisplay.textContent;
+    const challengeNo = challengeDisplay.textContent;
+    
+    // Skorlara göre emoji haritası (Final grid'deki renklere sadık kalalım)
+    // 15: 🟣, 9: 🔵, 7: 🟢, 5: ⚪, 4: 🟡, 2: 🟠, 0: ⬜
+    const emojiMap = {
+        15: '🟣', 9: '🔵', 7: '🟢', 5: '⚪', 4: '🟡', 2: '🟠', 0: '⬜'
+    };
+
+    let emojiGrid = '';
+    // Bu kısım senin renderFinalGrid mantığınla paralel çalışmalı
+    // rowScores ve colScores'u global veya paslanmış olarak almalıyız
+    // Şimdilik basitleştirmek için sadece toplam skoru ve bir linki paylaşıyoruz
+    
+    let text = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\n`;
+    text += `https://senin-oyun-linkin.com`; // Burayı kendi linkinle güncelle
+
+    return text;
+}
+
+async function handleShare(totalScore) {
+    const shareText = generateShareText(totalScore);
+
+    if (navigator.share) {
+        // Mobil Paylaşma Menüsü
+        try {
+            await navigator.share({
+                title: 'Grid Master',
+                text: shareText
+            });
+        } catch (err) {
+            console.log("Share cancelled");
+        }
+    } else {
+        // PC için Panoya Kopyala
+        try {
+            await navigator.clipboard.writeText(shareText);
+            const btn = document.getElementById('btn-share-score');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "COPIED TO CLIPBOARD!";
+            setTimeout(() => btn.innerHTML = originalText, 2000);
+        } catch (err) {
+            alert("Could not copy score.");
+        }
+    }
+}
+
+// calculateAndSaveScore fonksiyonunun en sonuna şunu ekle:
+// document.getElementById('share-container').classList.remove('hidden');
+// document.getElementById('btn-share-score').onclick = () => handleShare(totalScore);
