@@ -95,10 +95,10 @@ body {
 .board-container {
     display: flex;
     justify-content: center;
-    align-items: center;
-    flex: 1; /* Ortadaki boşluğu esnek bir şekilde kaplar */
-    min-height: 0; /* Taşıp kaydırmayı engeller */
-    padding: 0 10px; /* Üst/Alt padding sıfırlandı, kendi ortalanacak */
+    align-items: flex-start; /* 'center' yerine 'flex-start' yapıyoruz ki yukarı taşmasın */
+    width: 100%;
+    margin-top: 20px; /* Sub-header ile arasına kesin bir mesafe koyuyoruz */
+    flex-grow: 1;
 }
 
 .grid {
@@ -220,6 +220,7 @@ body {
     width: min(100%, 55dvh); 
     aspect-ratio: 1 / 1;
     gap: 4px; 
+    margin-bottom: 20px; /* Altındaki skor kutularıyla arasına mesafe */
 }
 
 .cell.score-cell {
