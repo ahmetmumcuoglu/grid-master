@@ -703,57 +703,187 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// 10. SHARE FUNCTIONALITY
+// 10. SHARE FUNCTIONALITY (Canvas Version)
 // ==========================================
 
-function generateShareText(totalScore) {
+// Puanlara göre renk kodları (CSS'tekiyle aynı)
+const SCORE_COLORS = {
+    15: '#8b5cf6', // mor
+    9: '#3b82f6',  // mavi
+    7: '#22c55e',  // yeşil
+    5: '#14b8a6',  // turkuaz
+    4: '#facc15',  // sarı
+    2: '#f97316',  // turuncu
+    0: '#94a3b8'   // gri
+};
+
+// YENİ: Canvas ile şık bir paylaşım resmi oluşturur
+async function createShareImage(totalScore, rowScores, colScores) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Yüksek çözünürlüklü kare formatı (1080x1080)
+    const size = 1080;
+    canvas.width = size;
+    canvas.height = size;
+    
+    // 1. Arka Planı Çiz
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    
+    // --- Başlık ve Skor Bölümü (Üst Kısım) ---
+    
+    // Logo (Serif Font)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 80px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Grid Master', size / 2, 120);
+    
+    // Gün ve Challenge No
+    const challengeNo = document.getElementById('challenge-display').textContent;
     const dateStr = dateDisplay.textContent;
-    const challengeNo = challengeDisplay.textContent;
+    ctx.fillStyle = '#555555';
+    ctx.font = '600 40px Clear Sans, sans-serif';
+    ctx.fillText(`${dateStr} • ${challengeNo}`, size / 2, 190);
     
-    // Skorlara göre emoji haritası (Final grid'deki renklere sadık kalalım)
-    // 15: 🟣, 9: 🔵, 7: 🟢, 5: ⚪, 4: 🟡, 2: 🟠, 0: ⬜
-    const emojiMap = {
-        15: '🟣', 9: '🔵', 7: '🟢', 5: '⚪', 4: '🟡', 2: '🟠', 0: '⬜'
-    };
-
-    let emojiGrid = '';
-    // Bu kısım senin renderFinalGrid mantığınla paralel çalışmalı
-    // rowScores ve colScores'u global veya paslanmış olarak almalıyız
-    // Şimdilik basitleştirmek için sadece toplam skoru ve bir linki paylaşıyoruz
+    // Toplam Skor (Büyük)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 120px Clear Sans, sans-serif';
+    ctx.fillText(totalScore, size / 2, 330);
+    ctx.fillStyle = '#555555';
+    ctx.font = '600 40px Clear Sans, sans-serif';
+    ctx.fillText('TOTAL SCORE', size / 2, 380);
     
-    let text = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\n`;
-    text += `https://thegridmaster.netlify.app/`; // Burayı kendi linkinle güncelle
-
-    return text;
-}
-
-async function handleShare(totalScore) {
-    const shareText = generateShareText(totalScore);
-
-    if (navigator.share) {
-        // Mobil Paylaşma Menüsü
-        try {
-            await navigator.share({
-                title: 'Grid Master',
-                text: shareText
-            });
-        } catch (err) {
-            console.log("Share cancelled");
-        }
-    } else {
-        // PC için Panoya Kopyala
-        try {
-            await navigator.clipboard.writeText(shareText);
-            const btn = document.getElementById('btn-share-score');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "COPIED TO CLIPBOARD!";
-            setTimeout(() => btn.innerHTML = originalText, 2000);
-        } catch (err) {
-            alert("Could not copy score.");
+    // --- Grid Çizim Bölümü (Orta Kısım) ---
+    
+    const gridPadding = 100;
+    const gridSize = size - (gridPadding * 2); // 880px
+    const cellSize = gridSize / 6; // 6x6 grid
+    const cellGap = 10; // Hücreler arası boşluk
+    const drawSize = cellSize - cellGap; // Gerçek çizim boyutu
+    
+    ctx.translate(gridPadding, 450); // Gridin başlangıç noktası
+    
+    // A. 5x5 Boş Gri Izgara (Spoiler Koruması)
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            const x = col * cellSize;
+            const y = row * cellSize;
+            
+            // Yuvarlatılmış köşeli kutucuk (Fonksiyonu aşağıda tanımladık)
+            drawRoundedRect(ctx, x, y, drawSize, drawSize, 15, '#e2e8f0');
         }
     }
+    
+    // B. Satır Sonu Renkli Skorlar (Sağ Sütun)
+    for (let row = 0; row < 5; row++) {
+        const score = rowScores[row];
+        const x = 5 * cellSize;
+        const y = row * cellSize;
+        
+        // Puanın rengini al
+        const color = SCORE_COLORS[score] || SCORE_COLORS[0];
+        drawRoundedRect(ctx, x, y, drawSize, drawSize, 15, color);
+        
+        // Beyaz puan yazısı (Tam ortalanmış)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 60px Clear Sans, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(score, x + (drawSize / 2), y + (drawSize / 2));
+    }
+    
+    // C. Sütun Sonu Renkli Skorlar (Alt Satır)
+    for (let col = 0; col < 5; col++) {
+        const score = colScores[col];
+        const x = col * cellSize;
+        const y = 5 * cellSize;
+        
+        const color = SCORE_COLORS[score] || SCORE_COLORS[0];
+        drawRoundedRect(ctx, x, y, drawSize, drawSize, 15, color);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 60px Clear Sans, sans-serif';
+        ctx.fillText(score, x + (drawSize / 2), y + (drawSize / 2));
+    }
+    
+    // --- Alt Bilgi ---
+    ctx.translate(-gridPadding, -450); // Koordinatları sıfırla
+    ctx.fillStyle = '#d3d6da';
+    ctx.font = 'italic 30px Clear Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('senin-oyun-linkin.com', size / 2, size - 40);
+    
+    // Canvas'ı resim dosyasına (Blob) dönüştür
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
 }
 
-// calculateAndSaveScore fonksiyonunun en sonuna şunu ekle:
-// document.getElementById('share-container').classList.remove('hidden');
-// document.getElementById('btn-share-score').onclick = () => handleShare(totalScore);
+// Yardımcı Fonksiyon: Yuvarlatılmış köşeli dikdörtgen çizer
+function drawRoundedRect(ctx, x, y, width, height, radius, color) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
+// YENİ: Ana Paylaşma Tetikleyicisi
+async function handleShare(totalScore) {
+    const btn = document.getElementById('btn-share-score');
+    const originalHTML = btn.innerHTML;
+    
+    // Yükleniyor durumu
+    btn.innerHTML = "GENERATING CARD...";
+    btn.style.opacity = '0.7';
+
+    // Skorları ve verileri topla (calculateAndSaveScore'dan paslanmış olmalı)
+    // Şimdilik test için boş diziler veriyoruz, bunları fonksiyonun içine entegre etmelisin.
+    const rowScores = [15, 7, 9, 5, 2]; // Örnek
+    const colScores = [2, 5, 4, 7, 5];  // Örnek
+
+    try {
+        const imageBlob = await createShareImage(totalScore, rowScores, colScores);
+        const challengeNo = document.getElementById('challenge-display').textContent;
+        const shareLink = window.location.href;
+        const shareText = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\nPlay here: ${shareLink}`;
+
+        // Mobil Paylaşma (Resim dosyası ile)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([imageBlob], 'gridmaster-score.png', { type: 'image/png' })] })) {
+            const file = new File([imageBlob], 'gridmaster-score.png', { type: 'image/png' });
+            await navigator.share({
+                files: [file],
+                title: 'Grid Master Score',
+                text: shareText
+            });
+        } else {
+            // PC / Tarayıcı Kopyalama (Metin ve Link)
+            // Resim kopyalama desteği tarayıcılarda sınırlı olduğu için metne düşüyoruz.
+            await navigator.clipboard.writeText(shareText);
+            btn.innerHTML = "COPIED SCORE TEXT!";
+            btn.style.backgroundColor = "#1a1a1a";
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.backgroundColor = ""; 
+                btn.style.opacity = '1';
+            }, 2000);
+            return;
+        }
+
+    } catch (error) {
+        console.error("Share error:", error);
+        alert("Could not generate share image. Score: " + totalScore);
+    }
+    
+    // Butonu eski haline döndür
+    btn.innerHTML = originalHTML;
+    btn.style.opacity = '1';
+}
