@@ -305,25 +305,36 @@ body {
     
     /* --- 6x6 Final Grid'i Zarifleştirme (Sadece Mobilde) --- */
     .grid.final-grid {
-        /* Hücreleri tek tek küçültmek yerine tüm tabloyu %85-90 oranında küçültüyoruz */
-        transform: scale(0.88); 
-        transform-origin: center top; /* Üst merkeze göre küçült ki yukarı kaymasın */
-        margin-top: -10px; /* Scale sonrası oluşan üst boşluğu geri çek */
-        margin-bottom: -20px; /* Scale sonrası oluşan alt boşluğu (scorlar için) daralt */
+        /* Tabloyu küçültmek için scale yerine genişliği (width) sınırlıyoruz */
+        display: grid;
+        grid-template-columns: repeat(6, 1fr); /* 6 sütunu eşit böl */
+        gap: 0px; /* Bitişik görünüm için boşluğu sıfırlıyoruz */
         
-        /* Orijinal gap ve hücre boyutlarını koru (böylece bitişik dururlar) */
-        gap: 2px; 
+        width: 92%; /* Ekranın %92'sini kapla (sağda solda boşluk bırakır) */
+        max-width: 340px; /* Çok geniş telefonlarda aşırı büyümesin */
+        margin: 25px auto; /* Üstten 25px boşluk bırakarak subheader'dan ayırır */
+        
+        padding: 0;
+        transform: none; /* Karmaşıklığı önlemek için scale'i iptal ettik */
     }
     
     .grid.final-grid .cell {
-        width: 50px;  /* Orijinal boyutta kalsınlar */
-        height: 50px;
-        font-size: 24px;
-        border-width: 2px;
+        /* Boyutları ekran genişliğine göre esnek (auto) yapıyoruz */
+        width: 100%; 
+        aspect-ratio: 1 / 1; /* Kare formunu koru */
+        height: auto;
+        
+        font-size: 18px; /* Hücreler küçüldüğü için fontu da küçülttük */
+        border: 0.5px solid var(--color-border); /* Bitişiklik hissi için ince kenarlık */
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .grid.final-grid .score-cell {
-        font-size: 18px;
+        font-size: 14px;
+        background-color: rgba(0,0,0,0.03); /* Puan kısmını çok hafif gölgele */
     }
 }
 
