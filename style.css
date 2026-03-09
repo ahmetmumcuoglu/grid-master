@@ -41,7 +41,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
+    padding: 8px 15px; /* 12px 20px idi, daraltıldı */
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -78,7 +78,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 5px 15px; /* 10px 20px idi, daraltıldı */
     font-size: 14px;
     font-weight: 600;
     color: var(--color-text-muted);
@@ -91,7 +91,7 @@ body {
     justify-content: center;
     align-items: center;
     flex-grow: 1;
-    padding: 10px 15px; /* Alt ve üst boşluklar daraltıldı */
+    padding: 5px 10px; /* İyice daraltıldı */
     min-height: 0; 
 }
 
@@ -99,9 +99,10 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 4px; /* Zarafet için 5px'ten 4px'e düşürüldü */
+    gap: 4px;
     width: 100%;
-    max-width: 350px;
+    /* SİHİRLİ KOD: Genişlik 350px'i geçmesin AMA ekran boyunun %45'ini de geçmesin! */
+    max-width: min(350px, 45vh); 
     aspect-ratio: 1 / 1;
 }
 
@@ -139,11 +140,11 @@ body {
 
 /* --- Controls Container (Kompakt Tasarım) --- */
 .controls-container {
-    padding: 5px 15px 25px 15px; /* Boşluklar iyice sıkıştırıldı */
+    padding: 0px 15px 10px 15px; /* Üst boşluk tamamen sıfırlandı */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 5px; /* 10px'ten 5px'e düşürüldü */
 }
 
 .message {
@@ -211,10 +212,11 @@ body {
 .grid.final-grid {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    max-width: 424px; 
+    /* 6x6 grid için ekran boyunun %55'ini geçmesine izin vermiyoruz */
+    max-width: min(424px, 55vh); 
     width: 100%;
     aspect-ratio: 1 / 1;
-    gap: 4px; /* Mobilde taşmayı önlemek için ana grid ile aynı */
+    gap: 4px; 
 }
 
 .cell.score-cell {
