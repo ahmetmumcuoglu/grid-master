@@ -80,9 +80,13 @@ async function initGame() {
         updateUI();
         
         if (currentMove < 25) {
-            isGameActive = true;
-            actionMessage.textContent = "Tap a cell to draft, tap again to place.";
-        } else {
+        isGameActive = true;
+        document.body.classList.add('game-locked'); // YENİ: Oyun devam ediyorsa ekranı kilitle
+        actionMessage.textContent = "Tap a cell to draft, tap again to place.";
+    } else {
+        document.body.classList.remove('game-locked'); // YENİ: Oyun bitmişse kilidi aç
+        calculateAndSaveScore();
+    } else {
             // Eğer sayfa yenilendiğinde oyun zaten bitmişse direkt sonuçları göster
             calculateAndSaveScore();
         }
@@ -387,6 +391,11 @@ function calculateAndSaveScore() {
 
         actionMessage.classList.add('final-score-text');
     
+    // YENİ: Oyun bitti, sayfa artık aşağı kaydırılabilir!
+    document.body.classList.remove('game-locked'); 
+
+    let totalScore = 0;
+    
     renderFinalGrid(rowScores, colScores);
     
     // YENİ: Kelimeleri temizle, sırala ve ekrana bas
@@ -687,7 +696,8 @@ function startSpecificDateGame(dateStr) {
     updateUI();
     saveGameState(); // Temiz haliyle yeni tarihi hemen LocalStorage'a kaydet
     
-    // Yeni oyun mesajı
+    document.body.classList.add('game-locked'); // YENİ: Arşiv oyunu başlarken ekranı kilitle
+    
     const actionMessage = document.getElementById('action-message');
     if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
 }
