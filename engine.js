@@ -74,20 +74,19 @@ async function initGame() {
         dictionary = new Set(wordsArray.map(w => w.toUpperCase()));
         
         setupDailyContext();
-        loadGameState(); // YENİ: Kayıtlı oyunu kontrol et
+        loadGameState(); // Kayıtlı oyunu kontrol et
         
         renderGrid();
         updateUI();
         
+        // Oyun durumu ve Ekran Kilidi Kontrolü
         if (currentMove < 25) {
-        isGameActive = true;
-        document.body.classList.add('game-locked'); // YENİ: Oyun devam ediyorsa ekranı kilitle
-        actionMessage.textContent = "Tap a cell to draft, tap again to place.";
-    } else {
-        document.body.classList.remove('game-locked'); // YENİ: Oyun bitmişse kilidi aç
-        calculateAndSaveScore();
-    } else {
-            // Eğer sayfa yenilendiğinde oyun zaten bitmişse direkt sonuçları göster
+            isGameActive = true;
+            document.body.classList.add('game-locked'); // Oyun devam ediyorsa ekranı kilitle
+            actionMessage.textContent = "Tap a cell to draft, tap again to place.";
+        } else {
+            // Eğer sayfa yenilendiğinde oyun zaten bitmişse kilidi aç ve sonuçları göster
+            document.body.classList.remove('game-locked'); 
             calculateAndSaveScore();
         }
         
