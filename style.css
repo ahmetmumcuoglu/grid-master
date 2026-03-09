@@ -257,8 +257,39 @@ body {
 @media (max-width: 420px) {
     .cell { border-width: 1.5px; }
     .grid, .grid.final-grid { gap: 3px; }
-    .letter-box { width: 52px; height: 52px; font-size: 2rem; }
+    
+    /* GÜNCELLENDİ: Kutucuğu 52px'den 50px'e çektik ve yazıyı ortaladık */
+    .letter-box { 
+        width: 50px; 
+        height: 50px; 
+        font-size: 26px; 
+        line-height: 50px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
     .key-btn { width: 28px; height: 40px; font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+    /* Senin mevcut istatistik kuralların */
+    .stats-flex-container { gap: 10px; }
+    .stats-value { font-size: 22px; }
+
+    /* YENİ: Dikey boşlukları tıraşlama (Sarkmayı önleyen kısım) */
+    .board-container {
+        margin-top: 10px; 
+        margin-bottom: 5px; 
+        flex-grow: 0; 
+    }
+    .controls-container {
+        margin-top: 0px; 
+        gap: 5px; 
+    }
+    #game-message-area .message {
+        font-size: 14px;
+        padding: 5px;
+    }
 }
 
 /* --- YENİ: Words Found List (Kelime Listesi) --- */
@@ -696,12 +727,6 @@ body {
 .user-score-box.new-record .stats-value,
 .user-score-box.new-record .stats-label {
     color: #854d0e; /* Altın rengi ile uyumlu koyu metin */
-}
-
-/* Mobilde hizalamayı koruma */
-@media (max-width: 480px) {
-    .stats-flex-container { gap: 10px; }
-    .stats-value { font-size: 22px; }
 }
 
 /* --- Oyun İçi Ekran Kilidi --- */
