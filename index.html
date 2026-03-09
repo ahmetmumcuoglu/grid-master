@@ -43,23 +43,31 @@
         </main>
 
         <div class="controls-container">
-    <div id="final-score-panel" class="score-panel hidden">
-        <div class="score-box user-score">
-            <span class="label">YOUR SCORE</span>
-            <span id="action-message" class="value">0</span>
-        </div>
-        <div class="score-box global-score">
-            <span class="label">TODAY'S BEST</span>
-            <span id="daily-top-banner" class="value">0</span>
-        </div>
-    </div>
+            <div id="game-message-area" class="message-area">
+                <div id="action-message" class="message">Loading dictionary...</div>
+            </div>
 
-    <div id="current-letter-box" class="letter-box hidden"></div>
-    <div id="joker-keyboard" class="keyboard-container hidden"></div>
-    <div id="words-list-container" class="words-container hidden"></div>
-    
-    <button id="btn-dev-reset" class="dev-reset-btn">DEV RESET</button>
-</div>
+            <div id="end-game-stats-area" class="end-game-stats-layout hidden">
+                <div class="stats-flex-container">
+                    
+                    <div class="final-score-box user-score-box">
+                        <span class="stats-label">YOUR SCORE</span>
+                        <span id="final-user-score-value" class="stats-value">0</span>
+                    </div>
+
+                    <div class="final-score-box daily-best-box">
+                        <span class="stats-label">DAILY BEST</span>
+                        <span id="final-daily-best-value" class="stats-value">0</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="current-letter-box" class="letter-box hidden"></div>
+            <div id="joker-keyboard" class="keyboard-container hidden"></div>
+            <div id="words-list-container" class="words-container hidden"></div>
+            <button id="btn-dev-reset" class="dev-reset-btn">DEV RESET</button>
+        </div>
         
     </div> <div id="dictionary-modal" class="modal-overlay">
         <div class="modal-content">
