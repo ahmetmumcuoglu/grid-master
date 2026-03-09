@@ -800,11 +800,11 @@ async function updatePlayerStats(currentScore) {
         }
         cachedUserStats.lastPlayedDate = todayStr;
 
-        // 3. Skor Dağılımını Güncelle (0-40, 41-60, 61-80, 81-100, 101+)
-        if (currentScore <= 40) cachedUserStats.distribution[0]++;
-        else if (currentScore <= 60) cachedUserStats.distribution[1]++;
-        else if (currentScore <= 80) cachedUserStats.distribution[2]++;
-        else if (currentScore <= 100) cachedUserStats.distribution[3]++;
+        // 3. Skor Dağılımını Güncelle (0-39, 40-59, 60-79, 80-99, 100+)
+        if (currentScore <= 39) cachedUserStats.distribution[0]++;
+        else if (currentScore <= 59) cachedUserStats.distribution[1]++;
+        else if (currentScore <= 79) cachedUserStats.distribution[2]++;
+        else if (currentScore <= 99) cachedUserStats.distribution[3]++;
         else cachedUserStats.distribution[4]++;
 
         // 4. Firebase'e Kaydet
@@ -869,7 +869,7 @@ async function showStatsModal() {
     distContainer.innerHTML = ''; // Loading yazısını temizle
     
     // Senin belirlediğin aralıklar:
-    const labels = ['0-40', '41-60', '61-80', '81-100', '101+'];
+    const labels = ['0-39', '40-59', '60-79', '80-99', '100+'];
     const maxVal = Math.max(...cachedUserStats.distribution); // En çok hangi aralıkta skor var?
 
     cachedUserStats.distribution.forEach((count, index) => {
