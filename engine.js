@@ -395,9 +395,8 @@ function calculateAndSaveScore() {
 
     const shareContainer = document.getElementById('share-container');
     const shareBtn = document.getElementById('btn-share-score');
-    
-    if (shareContainer && shareBtn) {
-        shareContainer.classList.remove('hidden');
+    if (shareBtn) {
+        shareBtn.classList.remove('hidden'); // Butonu görünür yap
         shareBtn.onclick = () => handleShare(totalScore);
     }
     
