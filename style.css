@@ -40,6 +40,14 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* Öğeleri yukarıdan aşağıya eşit iter */
+
+    /* YENİ: Güvenli Alan (Safe Area) Ayarları */
+    /* Üstten en az 10px, çentik varsa çentik kadar boşluk bırakır */
+    padding-top: max(10px, env(safe-area-inset-top)); 
+    /* Alttaki kaydırma çubuğu (Home Indicator) için güvenli alan */
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); 
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
 }
 
 /* --- Header Section --- */
