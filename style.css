@@ -794,23 +794,3 @@ body.game-locked .game-app {
     height: 100vh !important;
     justify-content: flex-start; /* İçeriği ekrana eşit yayar */
 }
-
-/* --- Help Icon Fix --- */
-#btn-help {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Noktanın görünmesi için dikey alanı rahatlatıyoruz */
-    line-height: 1; 
-    /* Bazı fontlarda soru işareti yukarı kaçar, 1-2px aşağı iterek noktayı görünür kılıyoruz */
-    padding-top: 2px; 
-    /* Kesilmeyi önlemek için overflow'u açıyoruz */
-    overflow: visible !important;
-}
-
-/* Mobilde font büyüklüğünden dolayı sığmıyorsa bir tık küçültelim */
-@media (max-width: 480px) {
-    #btn-help {
-        font-size: 20px; 
-    }
-}
