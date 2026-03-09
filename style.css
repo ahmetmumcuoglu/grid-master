@@ -305,21 +305,25 @@ body {
     
     /* --- 6x6 Final Grid'i Zarifleştirme (Sadece Mobilde) --- */
     .grid.final-grid {
-        gap: 4px; /* Hücreler arası boşluğu milimetrik daralt */
-        padding: 0 15px; /* Sağdan ve soldan kesinlikle boşluk bırak, ekrana yapışmasın */
-        max-width: 100%;
-        box-sizing: border-box;
+        /* Hücreleri tek tek küçültmek yerine tüm tabloyu %85-90 oranında küçültüyoruz */
+        transform: scale(0.88); 
+        transform-origin: center top; /* Üst merkeze göre küçült ki yukarı kaymasın */
+        margin-top: -10px; /* Scale sonrası oluşan üst boşluğu geri çek */
+        margin-bottom: -20px; /* Scale sonrası oluşan alt boşluğu (scorlar için) daralt */
+        
+        /* Orijinal gap ve hücre boyutlarını koru (böylece bitişik dururlar) */
+        gap: 2px; 
     }
     
     .grid.final-grid .cell {
-        width: 42px;  /* 50px yerine daha zarif, küçük kutular */
-        height: 42px;
-        font-size: 20px; /* Fontu da kutuya göre orantıla */
-        border-width: 1.5px; /* Kenarlıklar çok kalın durmasın */
+        width: 50px;  /* Orijinal boyutta kalsınlar */
+        height: 50px;
+        font-size: 24px;
+        border-width: 2px;
     }
     
     .grid.final-grid .score-cell {
-        font-size: 16px; /* Puan rakamları harflerden bir tık küçük olsun ki hiyerarşi kurulsun */
+        font-size: 18px;
     }
 }
 
