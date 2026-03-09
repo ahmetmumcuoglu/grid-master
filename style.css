@@ -595,3 +595,30 @@ body {
     border-radius: 8px;
     letter-spacing: 1px;
 }
+
+/* --- Daily Top Score Banner --- */
+.daily-top-banner {
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px auto;
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #334155;
+    max-width: 300px;
+    transition: all 0.3s ease;
+}
+
+.daily-top-banner.new-record {
+    background-color: #fef08a; /* Altın/Sarı vurgu */
+    border-color: #facc15;
+    color: #854d0e;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
