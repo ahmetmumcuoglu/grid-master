@@ -29,6 +29,11 @@ const actionMessage = document.getElementById('action-message');
 const dateDisplay = document.getElementById('date-display');
 const challengeDisplay = document.getElementById('challenge-display');
 const jokerKeyboard = document.getElementById('joker-keyboard');
+const wordsListContainer = document.getElementById('words-list-container');
+const dictModal = document.getElementById('dictionary-modal');
+const closeModalBtn = document.getElementById('close-modal');
+const modalTitle = document.getElementById('modal-word-title');
+const modalDef = document.getElementById('modal-word-def');
 
 // ==========================================
 // 2. INITIALIZATION & STATE RECOVERY
@@ -257,45 +262,49 @@ function handleCellClick(index) {
 }
 
 // ==========================================
-// 5. SCORING & FINAL GRID RENDERING (UPDATED)
+// 5. SCORING & WORD COLLECTION
 // ==========================================
 
 function getLineString(indices) {
     return indices.map(index => gridData[index] || ' ').join('');
 }
 
-// YENİ: Bir satır veya sütundaki TÜM geçerli kelimeleri bulur ve toplar
-function calculateLineScore(text) {
+// YENİ: Artık sadece skoru değil, bulunan kelimeleri de dizi olarak döndürüyor
+function calculateLineData(text) {
     let lineTotal = 0;
+    let foundWords = [];
     let i = 0;
 
     while (i < text.length) {
         let foundWordLength = 0;
         let foundScore = 0;
+        let foundWordStr = "";
 
-        // Mevcut pozisyondan (i) başlayan en uzun kelimeyi ara (5'ten 2'ye)
         for (let len = 5; len >= 2; len--) {
             if (i + len <= text.length) {
                 const sub = text.substring(i, i + len);
                 if (dictionary.has(sub)) {
                     foundWordLength = len;
                     foundScore = SCORE_RULES[len];
-                    break; // En uzun kelimeyi bulduğumuzda bu pozisyon için aramayı bitir
+                    foundWordStr = sub;
+                    break; 
                 }
             }
         }
 
         if (foundWordLength > 0) {
             lineTotal += foundScore;
-            i += foundWordLength; // Kelimenin bittiği yerden devam et (overlapping önlenir)
+            foundWords.push(foundWordStr); // Kelimeyi hafızaya al
+            i += foundWordLength; 
         } else {
-            i++; // Kelime yoksa bir sonraki harfe geç
+            i++; 
         }
     }
-    return lineTotal;
+    return { score: lineTotal, words: foundWords };
 }
 
-// Puana göre eşleşen CSS sınıfını döndürür
+// ... (getScoreColorClass fonksiyonu aynı kalıyor) ...
+
 function getScoreColorClass(score) {
     if (score >= 15) return 'score-15';
     if (score >= 9) return 'score-9';
@@ -308,38 +317,43 @@ function getScoreColorClass(score) {
 
 function calculateAndSaveScore() {
     let totalScore = 0;
+    let allFoundWords = []; // Bütün bulunan kelimeler burada toplanacak
     const GRID_SIZE = 5;
     
     let rowScores = Array(5).fill(0);
     let colScores = Array(5).fill(0);
 
-    // Check Rows
     for (let row = 0; row < GRID_SIZE; row++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
         const lineStr = getLineString(indices);
-        const score = calculateLineScore(lineStr);
-        rowScores[row] = score;
-        totalScore += score;
+        const lineData = calculateLineData(lineStr);
+        rowScores[row] = lineData.score;
+        totalScore += lineData.score;
+        allFoundWords.push(...lineData.words);
     }
 
-    // Check Columns
     for (let col = 0; col < GRID_SIZE; col++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
         const lineStr = getLineString(indices);
-        const score = calculateLineScore(lineStr);
-        colScores[col] = score;
-        totalScore += score;
+        const lineData = calculateLineData(lineStr);
+        colScores[col] = lineData.score;
+        totalScore += lineData.score;
+        allFoundWords.push(...lineData.words);
     }
 
-    // Temiz ve şık skor yazısı
     actionMessage.textContent = `Your Score: ${totalScore}`;
     actionMessage.classList.add('final-score-text');
     
-    // Transform 5x5 to 6x6 Score Grid
     renderFinalGrid(rowScores, colScores);
+    
+    // YENİ: Kelimeleri temizle, sırala ve ekrana bas
+    const uniqueWords = [...new Set(allFoundWords)].sort((a, b) => b.length - a.length || a.localeCompare(b));
+    renderWordsList(uniqueWords);
     
     submitToFirebase(totalScore);
 }
+
+// ... (renderFinalGrid fonksiyonu aynı kalıyor) ...
 
 function renderFinalGrid(rowScores, colScores) {
     gridEl.classList.add('final-grid');
@@ -352,7 +366,6 @@ function renderFinalGrid(rowScores, colScores) {
         cell.setAttribute('data-state', 'filled');
         gridEl.appendChild(cell);
         
-        // Satır sonlarına (sağa) puan hücresini ekle
         if ((i + 1) % 5 === 0) {
             const rowIndex = Math.floor(i / 5);
             const score = rowScores[rowIndex];
@@ -363,7 +376,6 @@ function renderFinalGrid(rowScores, colScores) {
         }
     }
     
-    // Alt satıra sütun puanlarını ekle
     colScores.forEach(score => {
         const scoreCell = document.createElement('div');
         scoreCell.className = `cell score-cell ${getScoreColorClass(score)}`;
@@ -371,15 +383,13 @@ function renderFinalGrid(rowScores, colScores) {
         gridEl.appendChild(scoreCell);
     });
     
-    // En sağ alt köşedeki görünmez boş hücre
     const cornerCell = document.createElement('div');
     cornerCell.className = 'cell empty-corner';
     gridEl.appendChild(cornerCell);
 }
 
 function submitToFirebase(score) {
-    console.log("Game Over. Total Score:", score);
-    // Firebase implementation will go here
+    console.log("Firebase Upload Ready. Score:", score);
 }
 
 // ==========================================
@@ -399,3 +409,70 @@ if (btnDevReset) {
 
 // Start Engine
 document.addEventListener('DOMContentLoaded', initGame);
+
+// ==========================================
+// 7. DICTIONARY API & MODAL LOGIC
+// ==========================================
+
+function renderWordsList(words) {
+    wordsListContainer.innerHTML = ''; // Temizle
+    wordsListContainer.classList.remove('hidden');
+    
+    if (words.length === 0) {
+        wordsListContainer.innerHTML = '<span style="color: var(--color-text-muted); font-size: 14px;">No words found.</span>';
+        return;
+    }
+
+    words.forEach(word => {
+        const btn = document.createElement('button');
+        btn.className = 'word-pill';
+        btn.textContent = word;
+        btn.addEventListener('click', () => openDictionaryModal(word));
+        wordsListContainer.appendChild(btn);
+    });
+}
+
+async function openDictionaryModal(word) {
+    // Modalı aç ve yükleniyor göster
+    modalTitle.textContent = word;
+    modalDef.innerHTML = '<p class="def-text">Looking up definition...</p>';
+    dictModal.classList.add('active');
+
+    try {
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        
+        if (!response.ok) {
+            modalDef.innerHTML = '<p class="def-text">Valid game word, but specific definition not found in this free dictionary.</p>';
+            return;
+        }
+
+        const data = await response.json();
+        const meanings = data[0].meanings;
+        
+        // İlk 2 anlamı ekrana bas (uzunluk çok artmasın diye)
+        let htmlContent = '';
+        meanings.slice(0, 2).forEach(meaning => {
+            htmlContent += `<div class="def-part">${meaning.partOfSpeech}</div>`;
+            htmlContent += `<div class="def-text">• ${meaning.definitions[0].definition}</div>`;
+        });
+        
+        modalDef.innerHTML = htmlContent;
+
+    } catch (error) {
+        modalDef.innerHTML = '<p class="def-text">Connection error. Could not fetch definition.</p>';
+    }
+}
+
+// Modalı kapatma işlemleri
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => dictModal.classList.remove('active'));
+}
+
+// Modal dışına tıklanırsa da kapat
+if (dictModal) {
+    dictModal.addEventListener('click', (e) => {
+        if (e.target === dictModal) {
+            dictModal.classList.remove('active');
+        }
+    });
+}
