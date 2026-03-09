@@ -1,6 +1,30 @@
 import { firebaseConfig } from './config.js';
-// Make sure to import Firestore components if using Firebase v9+ modular SDK
-// import { getFirestore, doc, setDoc } from "firebase/firestore"; 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// ==========================================
+// 0. FIREBASE INITIALIZATION & AUTH
+// ==========================================
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let userId = null; // Oyuncunun gizli kimliği
+
+// Oyuncu siteye girer girmez sessizce giriş yap
+signInAnonymously(auth)
+    .catch((error) => {
+        console.error("Firebase Auth Error:", error.code, error.message);
+    });
+
+// Giriş durumunu dinle ve ID'yi kaydet
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userId = user.uid;
+        console.log("Oyuncu kimliği oluşturuldu/bulundu:", userId);
+    }
+});
 
 // ==========================================
 // 1. GAME STATE & CONSTANTS
