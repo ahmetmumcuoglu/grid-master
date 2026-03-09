@@ -257,3 +257,104 @@ body {
     .letter-box { width: 52px; height: 52px; font-size: 2rem; }
     .key-btn { width: 28px; height: 40px; font-size: 14px; }
 }
+
+/* --- YENİ: Words Found List (Kelime Listesi) --- */
+.words-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 5px;
+    /* Ana ekran kaymasın diye sadece kelime listesi kendi içinde kayar */
+    overflow-y: auto; 
+    max-height: 15vh; 
+    padding-bottom: 10px;
+}
+
+.word-pill {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border-focus);
+    border-radius: 20px; /* Hap (Pill) görünümü */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.word-pill:hover {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+}
+
+/* --- YENİ: Dictionary Bottom Sheet Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4); /* Arka planı hafif karartır */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* İçeriği en alta yaslar */
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none; /* Gizliyken tıklanmayı engeller */
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--color-bg);
+    width: 100%;
+    max-width: 500px; /* PC'de çok yayılmasın diye limitli */
+    padding: 24px 20px 40px 20px; /* Safe area için alt padding bol tutuldu */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    transform: translateY(100%); /* Başlangıçta ekranın altında saklıdır */
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0); /* Sahnede yukarı kayarak belirir */
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px; right: 20px;
+    background: none; border: none;
+    font-size: 28px; cursor: pointer; color: var(--color-text-muted);
+}
+
+#modal-word-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    color: var(--color-text);
+}
+
+.def-part {
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+
+.def-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-text);
+}
