@@ -305,36 +305,42 @@ body {
     
     /* --- 6x6 Final Grid'i Zarifleştirme (Sadece Mobilde) --- */
     .grid.final-grid {
-        /* Tabloyu küçültmek için scale yerine genişliği (width) sınırlıyoruz */
         display: grid;
-        grid-template-columns: repeat(6, 1fr); /* 6 sütunu eşit böl */
-        gap: 0px; /* Bitişik görünüm için boşluğu sıfırlıyoruz */
-        
-        width: 92%; /* Ekranın %92'sini kapla (sağda solda boşluk bırakır) */
-        max-width: 340px; /* Çok geniş telefonlarda aşırı büyümesin */
-        margin: 25px auto; /* Üstten 25px boşluk bırakarak subheader'dan ayırır */
-        
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0px; /* Bitişiklik için sıfır kalsın */
+        width: 90%; 
+        max-width: 360px;
+        margin: 20px auto; 
         padding: 0;
-        transform: none; /* Karmaşıklığı önlemek için scale'i iptal ettik */
+        /* Dış çerçeveyi belirginleştir */
+        border: 1px solid var(--color-border); 
     }
     
     .grid.final-grid .cell {
-        /* Boyutları ekran genişliğine göre esnek (auto) yapıyoruz */
         width: 100%; 
-        aspect-ratio: 1 / 1; /* Kare formunu koru */
+        aspect-ratio: 1 / 1;
         height: auto;
-        
-        font-size: 18px; /* Hücreler küçüldüğü için fontu da küçülttük */
-        border: 0.5px solid var(--color-border); /* Bitişiklik hissi için ince kenarlık */
-        margin: 0;
+        font-size: 18px;
+        /* Çizgileri geri getir: Her hücrenin sağ ve alt kenarlığı olsun */
+        border: 1px solid var(--color-border); 
+        box-sizing: border-box; /* Kenarlığın kutu boyutunu etkilememesi için */
         display: flex;
         align-items: center;
         justify-content: center;
+        background-color: white; /* Hücrelerin içini doldur ki şeffaf kalmasınlar */
     }
-    
-    .grid.final-grid .score-cell {
+
+    /* Puan renklerinin (score-15, score-9 vb.) görünmesini sağlayan kritik ekleme */
+    .grid.final-grid .cell.score-cell {
         font-size: 14px;
-        background-color: rgba(0,0,0,0.03); /* Puan kısmını çok hafif gölgele */
+        font-weight: bold;
+        /* JS ile eklediğimiz arka plan renklerini zorla göster (important) */
+        background-image: none !important; 
+    }
+
+    /* Puan hücreleri için özel border yönetimi */
+    .grid.final-grid .score-cell {
+        border: 1px solid rgba(0,0,0,0.1); 
     }
 }
 
