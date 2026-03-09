@@ -1,7 +1,7 @@
 import { firebaseConfig } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
 // 0. FIREBASE INITIALIZATION & AUTH
@@ -527,4 +527,91 @@ if (dictModal) {
             dictModal.classList.remove('active');
         }
     });
+}
+
+// ==========================================
+// 8. ARCHIVE SYSTEM
+// ==========================================
+const btnArchive = document.getElementById('btn-archive');
+const archiveModal = document.getElementById('archive-modal');
+const closeArchiveBtn = document.getElementById('close-archive');
+const archiveList = document.getElementById('archive-list');
+
+// Orijinal HTML'indeki butonu dinliyoruz
+if (btnArchive) {
+    btnArchive.addEventListener('click', async () => {
+        archiveModal.classList.add('active');
+        await loadArchiveData();
+    });
+}
+
+if (closeArchiveBtn) {
+    closeArchiveBtn.addEventListener('click', () => archiveModal.classList.remove('active'));
+}
+
+async function loadArchiveData() {
+    if (!userId) {
+        archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Unable to load user data.</p>';
+        return;
+    }
+
+    archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Fetching records...</p>';
+
+    try {
+        const scoresRef = collection(db, "users", userId, "daily_scores");
+        const querySnapshot = await getDocs(scoresRef);
+        
+        const userScores = {};
+        querySnapshot.forEach((doc) => {
+            userScores[doc.id] = doc.data().score;
+        });
+
+        // Veriler çekildikten sonra arayüzü çiz
+        renderArchiveUI(userScores);
+
+    } catch (error) {
+        console.error("Archive fetch error:", error);
+        archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Error loading archive.</p>';
+    }
+}
+
+function renderArchiveUI(userScores) {
+    archiveList.innerHTML = '';
+    
+    // Oyunun Başlangıç Tarihi: 6 Mart 2026
+    const startDate = new Date("2026-03-06T00:00:00");
+    const today = new Date();
+    
+    let currentDate = new Date(today);
+    
+    // Bugünden başlayıp 6 Mart'a kadar geriye doğru git
+    while (currentDate >= startDate) {
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`; 
+        
+        const displayDate = currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        
+        const itemDiv = document.createElement('div');
+        
+        if (userScores[dateStr] !== undefined) {
+            // OYNANMIŞ GÜN
+            itemDiv.className = 'archive-item played';
+            itemDiv.innerHTML = `
+                <span class="archive-date">${displayDate}</span>
+                <span class="archive-status archive-score">Score: ${userScores[dateStr]}</span>
+            `;
+        } else {
+            // OYNANMAMIŞ GÜN
+            itemDiv.className = 'archive-item';
+            itemDiv.innerHTML = `
+                <span class="archive-date">${displayDate}</span>
+                <button class="archive-play-btn" data-date="${dateStr}">Play</button>
+            `;
+        }
+        
+        archiveList.appendChild(itemDiv);
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
 }
