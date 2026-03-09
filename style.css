@@ -358,3 +358,69 @@ body {
     line-height: 1.5;
     color: var(--color-text);
 }
+
+/* --- Archive Modal Styles --- */
+.archive-content {
+    max-height: 80vh; 
+}
+
+#archive-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    color: var(--color-text);
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.archive-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.archive-item.played {
+    border-color: var(--color-border-focus);
+    background-color: #f8f9fa;
+}
+
+.archive-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.archive-status {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.archive-score {
+    color: var(--color-text);
+    font-size: 16px;
+}
+
+.archive-play-btn {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+}
