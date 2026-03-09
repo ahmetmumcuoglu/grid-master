@@ -623,60 +623,80 @@ body {
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* --- New Score Panel System --- */
-.score-panel {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 15px 0;
-    animation: fadeIn 0.4s ease-out;
-}
-
-.score-panel.hidden {
-    display: none;
-}
-
-.score-box {
-    flex: 1;
-    max-width: 140px;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 5px;
+/* --- Controls Container & Spacing --- */
+.controls-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.2s;
+    gap: 10px; /* Elemanlar arası ferah boşluk */
+    margin-top: 15px;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.score-box .label {
-    font-size: 10px;
+/* --- End Game Stats Layout (Yan Yana Kutular) --- */
+.end-game-stats-layout {
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.end-game-stats-layout.hidden {
+    display: none !important;
+}
+
+.stats-flex-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Kutular arası boşluk */
+    width: 100%;
+}
+
+/* Ortak Dikdörtgen Kutu Stili */
+.final-score-box {
+    flex: 1; /* Eşit genişlik */
+    max-width: 160px; /* Maksimum genişlik sınırı */
+    background-color: #f8fafc; /* Nötr, temiz arka plan */
+    border: 1px solid #e2e8f0; /* Hafif kenarlık */
+    border-radius: 8px; /* Hafif yuvarlatılmış köşeler */
+    padding: 12px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-out, background-color 0.3s;
+}
+
+.stats-label {
+    font-size: 11px;
     font-weight: 700;
-    color: #64748b;
+    color: #64748b; /* Muted metin rengi */
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    letter-spacing: 0.7px;
+    margin-bottom: 5px;
 }
 
-.score-box .value {
-    font-size: 22px;
+.stats-value {
+    font-size: 26px;
     font-weight: 800;
-    color: #1e293b;
+    color: #1e293b; /* Koyu, okunaklı skor */
 }
 
 /* Rekor Kırıldığında Parlama Efekti */
-.score-box.new-record {
-    background-color: #fef08a;
+.user-score-box.new-record {
+    background-color: #fef08a; /* Altın rengi vurgu */
     border-color: #facc15;
-    transform: scale(1.05);
+    transform: scale(1.03); /* Hafif büyüme */
 }
 
-.score-box.new-record .value {
-    color: #854d0e;
+.user-score-box.new-record .stats-value,
+.user-score-box.new-record .stats-label {
+    color: #854d0e; /* Altın rengi ile uyumlu koyu metin */
 }
 
-/* Score Panel mobilde yan yana kalsın diye gap'i küçültüyoruz */
+/* Mobilde hizalamayı koruma */
 @media (max-width: 480px) {
-    .score-panel { gap: 8px; }
-    .score-box .value { font-size: 20px; }
+    .stats-flex-container { gap: 10px; }
+    .stats-value { font-size: 22px; }
 }
