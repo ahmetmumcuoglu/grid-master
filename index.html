@@ -26,9 +26,6 @@
         </header>
         
         <div class="sub-header">
-            <span id="date-display">March 6, 2026</span>
-            
-            <div class="sub-header">
             <div>
                 <span id="date-display">Loading date...</span>
                 <span id="challenge-no" style="margin-left: 10px; color: var(--color-border-focus);">No. ?</span>
@@ -38,9 +35,6 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                 SHARE
             </button>
-        </div>
-            
-            <span id="challenge-display">No. 1</span>
         </div>
 
         <main class="board-container">
@@ -54,10 +48,10 @@
             <div id="joker-keyboard" class="keyboard-container hidden"></div>
             
             <div id="words-list-container" class="words-container hidden"></div>
-            <button id="btn-dev-reset" style="background-color: #e74c3c; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; letter-spacing: 1px;">DEV RESET</button>
-            </div>
-    </div>
-
+            
+            <button id="btn-dev-reset" style="background-color: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; letter-spacing: 1px; margin-top: 10px;">DEV RESET</button>
+        </div>
+        
     </div> <div id="dictionary-modal" class="modal-overlay">
         <div class="modal-content">
             <button id="close-modal" class="modal-close">&times;</button>
@@ -87,7 +81,7 @@
                 <p>Build words horizontally (left-to-right) and vertically (top-to-bottom) on the 5x5 grid.</p>
                 
                 <ul>
-                    <li>The game generates 24 random letters each day; 14 consonants and 10 vowels.</li>
+                    <li>The game generates 24 random letters each day: 14 consonants and 10 vowels.</li>
                     <li><strong>Tap a cell</strong> to place the random letter and <strong>tap again</strong> to confirm the placement.</li>
                     <li>On your final (25th) turn, you will choose a <strong>Joker</strong> letter from the keyboard to complete the board.</li>
                     <li><strong>Rule:</strong> Each letter on the grid can only be used in <strong>one word</strong> per row and <strong>one word</strong> per column.</li>
