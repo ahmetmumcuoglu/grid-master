@@ -395,10 +395,11 @@ function calculateAndSaveScore() {
 
     const shareContainer = document.getElementById('share-container');
     const shareBtn = document.getElementById('btn-share-score');
-    if (shareBtn) {
-        shareBtn.classList.remove('hidden'); // Butonu görünür yap
-        shareBtn.onclick = () => handleShare(totalScore);
-    }
+if (shareBtn) {
+    shareBtn.classList.remove('hidden');
+    // DÜZELTME: totalScore yanına rowScores ve colScores'u ekledik
+    shareBtn.onclick = () => handleShare(totalScore, rowScores, colScores);
+}
     
     submitToFirebase(totalScore);
     
