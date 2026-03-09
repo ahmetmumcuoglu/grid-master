@@ -523,3 +523,75 @@ body {
 .share-btn-compact.hidden {
     display: none !important;
 }
+
+/* --- Stats Modal Styles --- */
+.stats-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-sub-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.dist-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.dist-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.dist-bar {
+    background-color: var(--color-text-muted);
+    color: white;
+    min-width: 20px;
+    padding: 2px 8px;
+    text-align: right;
+    border-radius: 2px;
+    transition: width 0.5s ease-out;
+}
+
+.dist-bar.highlight {
+    background-color: #6aaa64; /* Wordle yeşili gibi bir vurgu */
+}
+
+.personal-best-banner {
+    background-color: #1a1a1a;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+}
