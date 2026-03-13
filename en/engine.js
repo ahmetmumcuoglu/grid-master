@@ -104,30 +104,67 @@ function getLocalDateStr(dateObj) {
     return `${year}-${month}-${day}`;
 }
 
+// Remove incomplete games older than 144 hours
+function cleanupOldGameStates() {
+    const EXPIRY_MS = 144 * 60 * 60 * 1000;
+    const now = Date.now();
+    const keysToDelete = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith('gridMaster_en_game_')) continue;
+
+        try {
+            const state = JSON.parse(localStorage.getItem(key));
+            if (state && state.move < 25 && state.savedAt && (now - state.savedAt) > EXPIRY_MS) {
+                keysToDelete.push(key);
+            }
+        } catch (e) {
+            keysToDelete.push(key);
+        }
+    }
+
+    keysToDelete.forEach(key => localStorage.removeItem(key));
+    if (keysToDelete.length > 0) {
+        console.log(`Cleaned up: ${keysToDelete.length} expired incomplete games removed.`);
+    }
+}
+
+function getGameKey(dateStr) {
+    return `gridMaster_en_game_${dateStr}`;
+}
+
 function loadGameState() {
-    const savedState = localStorage.getItem('gridMaster_en_dailyState');
-    
+    cleanupOldGameStates();
+
+    const dateStr = getLocalDateStr(currentPlayingDate);
+    const savedState = localStorage.getItem(getGameKey(dateStr));
+
     if (savedState) {
-        const state = JSON.parse(savedState);
-        // Hafızadaki kaydın tarihine göre oyunun "Şu Anki" zamanını ayarla
-        const parts = state.dateStr.split('-');
-        currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
-        
-        gridData = state.grid;
-        currentMove = state.move;
+        try {
+            const state = JSON.parse(savedState);
+            gridData = state.grid;
+            currentMove = state.move;
+            console.log(`Saved game loaded: ${dateStr}, move: ${currentMove}`);
+        } catch (e) {
+            gridData = Array(25).fill(null);
+            currentMove = 0;
+        }
     } else {
-        // Kayıt yoksa her zaman "Bugün" ile başla
-        currentPlayingDate = new Date();
+        gridData = Array(25).fill(null);
+        currentMove = 0;
     }
 }
 
 function saveGameState() {
+    const dateStr = getLocalDateStr(currentPlayingDate);
     const state = {
-        dateStr: getLocalDateStr(currentPlayingDate),
+        dateStr: dateStr,
         grid: gridData,
-        move: currentMove
+        move: currentMove,
+        savedAt: Date.now()
     };
-    localStorage.setItem('gridMaster_en_dailyState', JSON.stringify(state));
+    localStorage.setItem(getGameKey(dateStr), JSON.stringify(state));
 }
 
 // ==========================================
@@ -491,8 +528,9 @@ async function submitToFirebase(score) {
 const btnDevReset = document.getElementById('btn-dev-reset');
 if (btnDevReset) {
     btnDevReset.addEventListener('click', () => {
-        // Clear the saved state from LocalStorage
-        localStorage.removeItem('gridMaster_en_dailyState');
+        // Clear today's saved state from LocalStorage
+        const todayKey = getGameKey(getLocalDateStr(currentPlayingDate));
+        localStorage.removeItem(todayKey);
         // Reload the page to start a fresh game
         window.location.reload();
     });
@@ -672,17 +710,27 @@ function startSpecificDateGame(dateStr) {
     const parts = dateStr.split('-');
     currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
     
-    // 2. Oyunu Sıfırla
-    gridData = Array(25).fill(null);
-    currentMove = 0;
-    isGameActive = true;
+    // 2. Load saved game for this date if it exists, otherwise start fresh
+    const savedForDate = localStorage.getItem(getGameKey(dateStr));
+    if (savedForDate) {
+        try {
+            const state = JSON.parse(savedForDate);
+            gridData = state.grid;
+            currentMove = state.move;
+            console.log(`Resuming archive game: ${dateStr}, move: ${currentMove}`);
+        } catch (e) {
+            gridData = Array(25).fill(null);
+            currentMove = 0;
+        }
+    } else {
+        gridData = Array(25).fill(null);
+        currentMove = 0;
+    }
+    isGameActive = currentMove < 25;
     draftIndex = null;
     jokerLetter = null;
     
-    // 3. Hafızayı (Local Storage) temizle ki eski oyunla çakışmasın
-    localStorage.removeItem('gridMaster_en_dailyState'); 
-    
-    // 4. Oyun Arayüzünü Yeni Tarihe Göre Çiz
+    // 3. Set up UI for the selected date
     setupDailyContext();
     
     // ==========================================
