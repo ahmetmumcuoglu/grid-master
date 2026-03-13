@@ -1,7 +1,7 @@
 import { firebaseConfig } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs, getDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
 // 0. FIREBASE INITIALIZATION & AUTH
@@ -10,35 +10,25 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let userId = null;
+let userId = null; // Oyuncunun gizli kimliği
 
-signInAnonymously(auth).catch((error) => {
-    console.error("Firebase Auth Error:", error.code, error.message);
-});
+// Oyuncu siteye girer girmez sessizce giriş yap
+signInAnonymously(auth)
+    .catch((error) => {
+        console.error("Firebase Auth Error:", error.code, error.message);
+    });
 
+// Giriş durumunu dinle ve ID'yi kaydet
 onAuthStateChanged(auth, (user) => {
     if (user) {
         userId = user.uid;
-        console.log("Player ID initialized:", userId);
+        console.log("Oyuncu kimliği oluşturuldu/bulundu:", userId);
     }
 });
 
 // ==========================================
-// 1. GAME STATE, CONSTANTS & EN ISOLATION
+// 1. GAME STATE & CONSTANTS
 // ==========================================
-
-// İngilizce versiyona özel hafıza ve veritabanı yolları
-const STORAGE_KEYS = {
-    STATE: 'gridMaster_dailyState_EN',
-    STATS: 'gridMaster_playerStats_EN',
-    THEME: 'gridMaster_theme_EN'
-};
-
-const COLLECTIONS = {
-    SCORES: 'dailyScores_EN',
-    PLAYER_STATS: 'playerStats_EN'
-};
-
 let dictionary = new Set();
 let gridData = Array(25).fill(null);
 let dailySequence = [];
@@ -47,6 +37,7 @@ let isGameActive = false;
 let draftIndex = null;
 let jokerLetter = null;
 let currentPlayingDate = new Date();
+let cachedUserStats = null;
 
 const LETTER_POOL = {
     'A': 9, 'B': 2, 'C': 2, 'D': 4, 'E': 12, 'F': 2, 'G': 3, 'H': 2,
@@ -54,7 +45,6 @@ const LETTER_POOL = {
     'Q': 1, 'R': 6, 'S': 4, 'T': 6, 'U': 4, 'V': 2, 'W': 2, 'X': 1,
     'Y': 2, 'Z': 1
 };
-
 const VOWELS = ['A', 'E', 'I', 'O', 'U'];
 const SCORE_RULES = { 2: 2, 3: 5, 4: 9, 5: 15 };
 
@@ -77,23 +67,26 @@ const modalDef = document.getElementById('modal-word-def');
 async function initGame() {
     try {
         actionMessage.textContent = "Loading dictionary...";
+        
         const response = await fetch('words.json');
         if (!response.ok) throw new Error("Failed to load dictionary");
         const wordsArray = await response.json();
         dictionary = new Set(wordsArray.map(w => w.toUpperCase()));
         
         setupDailyContext();
-        loadGameState();
+        loadGameState(); // Kayıtlı oyunu kontrol et
         
         renderGrid();
         updateUI();
         
+        // Oyun durumu ve Ekran Kilidi Kontrolü
         if (currentMove < 25) {
             isGameActive = true;
-            document.body.classList.add('game-locked'); 
+            document.body.classList.add('game-locked'); // Oyun devam ediyorsa ekranı kilitle
             actionMessage.textContent = "Tap a cell to draft, tap again to place.";
         } else {
-            document.body.classList.remove('game-locked');
+            // Eğer sayfa yenilendiğinde oyun zaten bitmişse kilidi aç ve sonuçları göster
+            document.body.classList.remove('game-locked'); 
             calculateAndSaveScore();
         }
         
@@ -103,6 +96,7 @@ async function initGame() {
     }
 }
 
+// YENİ: Tarihleri YYYY-MM-DD formatında standartlaştırmak için yardımcı fonksiyon
 function getLocalDateStr(dateObj) {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -111,14 +105,18 @@ function getLocalDateStr(dateObj) {
 }
 
 function loadGameState() {
-    const savedState = localStorage.getItem(STORAGE_KEYS.STATE);
+    const savedState = localStorage.getItem('gridMaster_en_dailyState');
+    
     if (savedState) {
         const state = JSON.parse(savedState);
+        // Hafızadaki kaydın tarihine göre oyunun "Şu Anki" zamanını ayarla
         const parts = state.dateStr.split('-');
         currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        
         gridData = state.grid;
         currentMove = state.move;
     } else {
+        // Kayıt yoksa her zaman "Bugün" ile başla
         currentPlayingDate = new Date();
     }
 }
@@ -129,13 +127,14 @@ function saveGameState() {
         grid: gridData,
         move: currentMove
     };
-    localStorage.setItem(STORAGE_KEYS.STATE, JSON.stringify(state));
+    localStorage.setItem('gridMaster_en_dailyState', JSON.stringify(state));
 }
 
 // ==========================================
 // 3. DAILY SEEDED RNG LOGIC
 // ==========================================
 function setupDailyContext() {
+    // SİHİR BURADA: Artık bugünü değil, oynanan tarihi kullanıyoruz!
     const options = { month: 'long', day: 'numeric', year: 'numeric' };
     dateDisplay.textContent = currentPlayingDate.toLocaleDateString('en-US', options);
     
@@ -147,6 +146,7 @@ function setupDailyContext() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     challengeDisplay.textContent = `No. ${diffDays}`;
     
+    // Geçmiş tarihe göre benzersiz tohum (seed) üret
     const seed = (currentPlayingDate.getFullYear() * 10000) + ((currentPlayingDate.getMonth() + 1) * 100) + currentPlayingDate.getDate();
     dailySequence = generateDailyLetters(seed);
 }
@@ -195,6 +195,7 @@ function generateDailyLetters(seed) {
 // ==========================================
 function renderGrid() {
     gridEl.innerHTML = '';
+    
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
@@ -210,6 +211,7 @@ function renderGrid() {
             cell.setAttribute('data-state', 'empty');
             cell.addEventListener('click', () => handleCellClick(i));
         }
+        
         gridEl.appendChild(cell);
     }
 }
@@ -217,6 +219,7 @@ function renderGrid() {
 function renderKeyboard() {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
     jokerKeyboard.innerHTML = '';
+    
     alphabet.forEach(letter => {
         const btn = document.createElement('button');
         btn.className = 'key-btn';
@@ -233,6 +236,7 @@ function renderKeyboard() {
             renderGrid();
             updateUI();
         });
+        
         jokerKeyboard.appendChild(btn);
     });
 }
@@ -251,6 +255,7 @@ function updateUI() {
     } else if (currentMove === 24) {
         currentLetterBox.classList.add('hidden');
         jokerKeyboard.classList.remove('hidden');
+        
         if (draftIndex !== null && jokerLetter !== null) {
             actionMessage.textContent = "Tap the grid cell again to finish the game.";
         } else {
@@ -266,11 +271,13 @@ function updateUI() {
 
 function handleCellClick(index) {
     if (!isGameActive || gridData[index] !== null) return;
+    
     if (draftIndex !== index) {
         draftIndex = index;
         renderGrid();
         updateUI();
-    } else {
+    } 
+    else {
         if (currentMove === 24 && jokerLetter === null) {
             actionMessage.textContent = "Please select a letter from the keyboard first!";
             return;
@@ -280,13 +287,13 @@ function handleCellClick(index) {
         currentMove++;
         draftIndex = null;
         
-        saveGameState();
+        saveGameState(); // YENİ: Hamleyi Local Storage'a kaydet
 
         if (currentMove === 25) {
             isGameActive = false;
             renderGrid();
             updateUI();
-            calculateAndSaveScore();
+            calculateAndSaveScore(); // YENİ: Oyun bitti, puanı hesapla
         } else {
             renderGrid();
             updateUI();
@@ -297,22 +304,36 @@ function handleCellClick(index) {
 // ==========================================
 // 5. SCORING & WORD COLLECTION
 // ==========================================
+
 function getLineString(indices) {
     return indices.map(index => gridData[index] || ' ').join('');
 }
 
+// YENİ: Maksimum puanı garantileyen Rekürsif (Özyineli) Algoritma
 function calculateLineData(text) {
+    
+    // Satırdaki en yüksek puanlı kombinasyonu bulan iç fonksiyon
     function findMaxScore(index) {
+        // Eğer satırın sonuna geldiysek puan 0, kelime yok
         if (index >= text.length) {
             return { score: 0, words: [] };
         }
+
+        // 1. SEÇENEK: Bu harfi atla (hiçbir kelimeye dahil etme) ve sonrasına bak
         let bestResult = findMaxScore(index + 1);
+
+        // 2. SEÇENEK: Bu harften başlayan 2, 3, 4, 5 harfli geçerli kelimeleri dene
         for (let len = 2; len <= 5; len++) {
             if (index + len <= text.length) {
                 const sub = text.substring(index, index + len);
+                
+                // Eğer sözlükte varsa
                 if (dictionary.has(sub)) {
+                    // Bu kelimeden SONRAKİ harflerin getireceği maksimum puanı hesapla
                     const nextResult = findMaxScore(index + len);
                     const currentTotalScore = SCORE_RULES[len] + nextResult.score;
+
+                    // Eğer bu kombinasyon (Örn: TO + NOG) şu ana kadarki en iyisinden (Örn: TON) yüksekse, yeni lider bu!
                     if (currentTotalScore > bestResult.score) {
                         bestResult = {
                             score: currentTotalScore,
@@ -324,8 +345,12 @@ function calculateLineData(text) {
         }
         return bestResult;
     }
+
+    // Fonksiyonu satırın 0. indeksinden (en başından) başlat
     return findMaxScore(0);
 }
+
+// ... (getScoreColorClass fonksiyonu aynı kalıyor) ...
 
 function getScoreColorClass(score) {
     if (score >= 15) return 'score-15';
@@ -338,8 +363,8 @@ function getScoreColorClass(score) {
 }
 
 function calculateAndSaveScore() {
-    let totalScore = 0;
-    let allFoundWords = [];
+    let totalScore = 0; // Doğru tanımlama burada
+    let allFoundWords = []; // Bütün bulunan kelimeler burada toplanacak
     const GRID_SIZE = 5;
     
     let rowScores = Array(5).fill(0);
@@ -363,34 +388,46 @@ function calculateAndSaveScore() {
         allFoundWords.push(...lineData.words);
     }
 
-    document.body.classList.remove('game-locked');
+    // YENİ: Oyun bitti, sayfa artık aşağı kaydırılabilir!
+    document.body.classList.remove('game-locked'); 
+    
+    // (BURADAKİ İKİNCİ 'let totalScore = 0;' SATIRINI SİLDİK)
 
     renderFinalGrid(rowScores, colScores);
     
+    // YENİ: Kelimeleri temizle, sırala ve ekrana bas
     const uniqueWords = [...new Set(allFoundWords)].sort((a, b) => b.length - a.length || a.localeCompare(b));
     renderWordsList(uniqueWords);
 
+    // 1. Oyun içi mesaj alanını GİZLE
     const messageArea = document.getElementById('game-message-area');
     if (messageArea) messageArea.classList.add('hidden');
 
+    // 2. Oyun sonu skor alanını GÖSTER
     const endStatsArea = document.getElementById('end-game-stats-area');
     if (endStatsArea) endStatsArea.classList.remove('hidden');
 
+    // 3. Kendi skorunu Your Score kutusuna yazdır
     const finalUserScoreVal = document.getElementById('final-user-score-value');
     if (finalUserScoreVal) finalUserScoreVal.textContent = totalScore;
 
+    // 4. Paylaşma Butonunu aktif et
     const shareBtn = document.getElementById('btn-share-score');
     if (shareBtn) {
         shareBtn.classList.remove('hidden');
         shareBtn.onclick = () => handleShare(totalScore, rowScores, colScores);
     }
     
+    // Firebase gönderimleri ve diğer hesaplamalar
     submitToFirebase(totalScore);
-    updatePlayerStats(totalScore);
-    
+    updatePlayerStats(totalScore); 
+
+    // 5. Günün en yüksek skorunu kontrol et
     const dateStr = getLocalDateStr(currentPlayingDate);
     handleDailyTopScore(totalScore, dateStr);
 }
+
+// ... (renderFinalGrid fonksiyonu aynı kalıyor) ...
 
 function renderFinalGrid(rowScores, colScores) {
     gridEl.classList.add('final-grid');
@@ -427,118 +464,49 @@ function renderFinalGrid(rowScores, colScores) {
 
 async function submitToFirebase(score) {
     if (!userId) return;
+
+    // YENİ: Bugün yerine, oynanan tarihe (currentPlayingDate) kaydet
     const dateStr = getLocalDateStr(currentPlayingDate);
+
     try {
-        // EN_ISOLATION: scores tablosu ayrıldı
-        const docRef = doc(db, COLLECTIONS.SCORES, `${dateStr}_${userId}`);
+        const docRef = doc(db, "users", userId, "en", "data", "daily_scores", dateStr);
         await setDoc(docRef, {
-            userId: userId,
             score: score,
             grid: gridData,
             date: dateStr,
-            timestamp: new Date()
+            timestamp: new Date() // Bu kaydın yapıldığı gerçek an
         }, { merge: true });
-        
-        // Kullanıcı bazlı arşiv sistemi için de ayrım sağladık
-        const userArchiveRef = doc(db, "users", userId, "daily_scores_EN", dateStr);
-        await setDoc(userArchiveRef, {
-            score: score,
-            date: dateStr,
-            timestamp: new Date()
-        }, { merge: true });
+
+        console.log("Archive/Daily Score saved to cloud:", dateStr);
     } catch (e) {
         console.error("Error saving score: ", e);
     }
 }
 
 // ==========================================
-// 6. STATISTICS & DAILY BEST LOGIC
+// 6. DEVELOPMENT TOOLS
 // ==========================================
-async function updatePlayerStats(newScore) {
-    let stats = JSON.parse(localStorage.getItem(STORAGE_KEYS.STATS)) || {
-        played: 0,
-        streak: 0,
-        maxStreak: 0,
-        distribution: {},
-        bestScore: 0,
-        lastDate: null
-    };
 
-    const dateStr = getLocalDateStr(currentPlayingDate);
-    
-    if (stats.lastDate !== dateStr) {
-        stats.played += 1;
-        
-        const yesterday = new Date(currentPlayingDate);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = getLocalDateStr(yesterday);
-        
-        if (stats.lastDate === yesterdayStr) {
-            stats.streak += 1;
-        } else {
-            stats.streak = 1;
-        }
-        
-        if (stats.streak > stats.maxStreak) {
-            stats.maxStreak = stats.streak;
-        }
-        
-        stats.lastDate = dateStr;
-    }
-
-    if (newScore > stats.bestScore) {
-        stats.bestScore = newScore;
-        const userScoreBox = document.querySelector('.user-score-box');
-        if (userScoreBox) userScoreBox.classList.add('new-record');
-    }
-
-    const range = Math.floor(newScore / 20) * 20;
-    const rangeStr = `${range}-${range + 19}`;
-    stats.distribution[rangeStr] = (stats.distribution[rangeStr] || 0) + 1;
-
-    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
-
-    if (userId) {
-        await setDoc(doc(db, COLLECTIONS.PLAYER_STATS, userId), stats);
-    }
+// NEW: Dev Reset mechanism to quickly test the game repeatedly
+const btnDevReset = document.getElementById('btn-dev-reset');
+if (btnDevReset) {
+    btnDevReset.addEventListener('click', () => {
+        // Clear the saved state from LocalStorage
+        localStorage.removeItem('gridMaster_en_dailyState');
+        // Reload the page to start a fresh game
+        window.location.reload();
+    });
 }
 
-async function handleDailyTopScore(userScore, dateStr) {
-    const dailyBestVal = document.getElementById('final-daily-best-value');
-    if (!dailyBestVal) return;
-    
-    try {
-        const q = query(
-            collection(db, COLLECTIONS.SCORES),
-            where("date", "==", dateStr),
-            orderBy("score", "desc"),
-            limit(1)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        let highestGlobalScore = userScore;
-        if (!querySnapshot.empty) {
-            const topDoc = querySnapshot.docs[0].data();
-            highestGlobalScore = Math.max(userScore, topDoc.score);
-        }
-        
-        dailyBestVal.textContent = highestGlobalScore;
-
-        if (userScore >= highestGlobalScore && userScore > 0) {
-            const dailyBestBox = document.querySelector('.daily-best-box');
-            if(dailyBestBox) dailyBestBox.classList.add('new-record');
-        }
-
-    } catch (error) {
-        console.error("Error handling top score:", error);
-    }
-}
+// Start Engine
+document.addEventListener('DOMContentLoaded', initGame);
 
 // ==========================================
 // 7. DICTIONARY API & MODAL LOGIC
 // ==========================================
+
 function renderWordsList(words) {
-    wordsListContainer.innerHTML = '';
+    wordsListContainer.innerHTML = ''; // Temizle
     wordsListContainer.classList.remove('hidden');
     
     if (words.length === 0) {
@@ -556,12 +524,14 @@ function renderWordsList(words) {
 }
 
 async function openDictionaryModal(word) {
+    // Modalı aç ve yükleniyor göster
     modalTitle.textContent = word;
     modalDef.innerHTML = '<p class="def-text">Looking up definition...</p>';
     dictModal.classList.add('active');
 
     try {
         const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        
         if (!response.ok) {
             modalDef.innerHTML = '<p class="def-text">Valid game word, but specific definition not found in this free dictionary.</p>';
             return;
@@ -569,31 +539,44 @@ async function openDictionaryModal(word) {
 
         const data = await response.json();
         const meanings = data[0].meanings;
-        let htmlContent = '';
         
+        // İlk 2 anlamı ekrana bas (uzunluk çok artmasın diye)
+        let htmlContent = '';
         meanings.slice(0, 2).forEach(meaning => {
             htmlContent += `<div class="def-part">${meaning.partOfSpeech}</div>`;
             htmlContent += `<div class="def-text">• ${meaning.definitions[0].definition}</div>`;
         });
         
         modalDef.innerHTML = htmlContent;
+
     } catch (error) {
         modalDef.innerHTML = '<p class="def-text">Connection error. Could not fetch definition.</p>';
     }
 }
 
+// Modalı kapatma işlemleri
 if (closeModalBtn) {
     closeModalBtn.addEventListener('click', () => dictModal.classList.remove('active'));
 }
 
+// Modal dışına tıklanırsa da kapat
+if (dictModal) {
+    dictModal.addEventListener('click', (e) => {
+        if (e.target === dictModal) {
+            dictModal.classList.remove('active');
+        }
+    });
+}
+
 // ==========================================
-// 8. ARCHIVE SYSTEM (EN ISOLATION)
+// 8. ARCHIVE SYSTEM
 // ==========================================
 const btnArchive = document.getElementById('btn-archive');
 const archiveModal = document.getElementById('archive-modal');
 const closeArchiveBtn = document.getElementById('close-archive');
 const archiveList = document.getElementById('archive-list');
 
+// Orijinal HTML'indeki butonu dinliyoruz
 if (btnArchive) {
     btnArchive.addEventListener('click', async () => {
         archiveModal.classList.add('active');
@@ -612,17 +595,19 @@ async function loadArchiveData() {
     }
 
     archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Fetching records...</p>';
+
     try {
-        // EN_ISOLATION
-        const scoresRef = collection(db, "users", userId, "daily_scores_EN");
+        const scoresRef = collection(db, "users", userId, "en", "data", "daily_scores");
         const querySnapshot = await getDocs(scoresRef);
         
         const userScores = {};
         querySnapshot.forEach((doc) => {
             userScores[doc.id] = doc.data().score;
         });
-        
+
+        // Veriler çekildikten sonra arayüzü çiz
         renderArchiveUI(userScores);
+
     } catch (error) {
         console.error("Archive fetch error:", error);
         archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Error loading archive.</p>';
@@ -631,26 +616,33 @@ async function loadArchiveData() {
 
 function renderArchiveUI(userScores) {
     archiveList.innerHTML = '';
+    
+    // Oyunun Başlangıç Tarihi: 6 Mart 2026
     const startDate = new Date("2026-03-06T00:00:00");
     const today = new Date();
+    
     let currentDate = new Date(today);
     
+    // Bugünden başlayıp 6 Mart'a kadar geriye doğru git
     while (currentDate >= startDate) {
         const year = currentDate.getFullYear();
         const month = String(currentDate.getMonth() + 1).padStart(2, '0');
         const day = String(currentDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
+        const dateStr = `${year}-${month}-${day}`; 
         
         const displayDate = currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        
         const itemDiv = document.createElement('div');
         
         if (userScores[dateStr] !== undefined) {
+            // OYNANMIŞ GÜN
             itemDiv.className = 'archive-item played';
             itemDiv.innerHTML = `
                 <span class="archive-date">${displayDate}</span>
                 <span class="archive-status archive-score">Score: ${userScores[dateStr]}</span>
             `;
         } else {
+            // OYNANMAMIŞ GÜN
             itemDiv.className = 'archive-item';
             itemDiv.innerHTML = `
                 <span class="archive-date">${displayDate}</span>
@@ -663,106 +655,78 @@ function renderArchiveUI(userScores) {
     }
 }
 
+// Arşiv listesi içindeki "Play" butonlarını dinle (Event Delegation)
 if (archiveList) {
     archiveList.addEventListener('click', (e) => {
         if (e.target.classList.contains('archive-play-btn')) {
             const dateStr = e.target.getAttribute('data-date');
-            archiveModal.classList.remove('active'); 
-            startSpecificDateGame(dateStr); 
+            archiveModal.classList.remove('active'); // Modalı kapat
+            startSpecificDateGame(dateStr); // Zaman makinesini çalıştır!
         }
     });
 }
 
+// YENİ: Geçmiş bir tarihi başlatma fonksiyonu (Zaman Makinesi)
 function startSpecificDateGame(dateStr) {
+    // 1. Tarihi ayarla (YYYY-MM-DD formatından)
     const parts = dateStr.split('-');
     currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
     
+    // 2. Oyunu Sıfırla
     gridData = Array(25).fill(null);
     currentMove = 0;
     isGameActive = true;
     draftIndex = null;
     jokerLetter = null;
     
-    localStorage.removeItem(STORAGE_KEYS.STATE);
+    // 3. Hafızayı (Local Storage) temizle ki eski oyunla çakışmasın
+    localStorage.removeItem('gridMaster_en_dailyState'); 
     
+    // 4. Oyun Arayüzünü Yeni Tarihe Göre Çiz
     setupDailyContext();
     
-    // UI RESET
+    // ==========================================
+    // 5. UI SIFIRLAMA (Sorunu Çözen Kısım)
+    // ==========================================
+    
+    // A. 6x6 final grid'i iptal et (5x5'e dön)
     gridEl.classList.remove('final-grid');
+    
+    // B. Kelime listesini gizle
     const wordsContainer = document.getElementById('words-list-container');
     if(wordsContainer) wordsContainer.classList.add('hidden');
     
+    // C. Oyun sonu skor kutucuklarını (Your Score / Daily Best) gizle
     const endStatsArea = document.getElementById('end-game-stats-area');
     if(endStatsArea) endStatsArea.classList.add('hidden');
     
+    // D. Parlayan "Yeni Rekor" sınıfını temizle (Sarı kutu kalmasın)
     const userScoreBox = document.querySelector('.user-score-box');
     if(userScoreBox) userScoreBox.classList.remove('new-record');
-    const dailyBestBox = document.querySelector('.daily-best-box');
-    if(dailyBestBox) dailyBestBox.classList.remove('new-record');
 
+    // E. Paylaş butonunu gizle
     const shareBtn = document.getElementById('btn-share-score');
     if(shareBtn) shareBtn.classList.add('hidden');
     
+    // F. Oyun içi mesaj satırını tekrar GÖSTER
     const messageArea = document.getElementById('game-message-area');
     if(messageArea) messageArea.classList.remove('hidden');
 
+    // ==========================================
+
+    // 6. Ekranı tekrar kilitle ve arayüzü çiz
     document.body.classList.add('game-locked');
     renderGrid();
     updateUI();
-    saveGameState();
+    saveGameState(); // Temiz haliyle yeni tarihi hemen LocalStorage'a kaydet
     
+    // Yeni oyun mesajı
     const actionMessage = document.getElementById('action-message');
     if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
 }
 
 // ==========================================
-// 9. SHARE & EMOJI LOGIC
-// ==========================================
-function getScoreHeartEmoji(score) {
-    if (score >= 15) return '💜';
-    if (score >= 9) return '💙';
-    if (score >= 7) return '🩵';
-    if (score >= 5) return '💚';
-    if (score >= 4) return '💛';
-    if (score >= 2) return '🧡';
-    return '🩶';
-}
-
-async function handleShare(totalScore, rowScores, colScores) {
-    const challengeNo = document.getElementById('challenge-display').textContent;
-    const shareLink = window.location.href;
-    const emptyCell = '⬜'; 
-    
-    let gridText = "";
-    for (let i = 0; i < 5; i++) {
-        gridText += `${emptyCell}${emptyCell}${emptyCell}${emptyCell}${emptyCell} ${getScoreHeartEmoji(rowScores[i])}\n`;
-    }
-    
-    gridText += "\n";
-    for (let i = 0; i < 5; i++) {
-        gridText += getScoreHeartEmoji(colScores[i]);
-    }
-
-    const shareText = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\n${gridText}\n\n${shareLink}`;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: 'Grid Master Score',
-                text: shareText
-            });
-        } catch (err) {
-            console.log("Share cancelled or failed.", err);
-        }
-    } else {
-        navigator.clipboard.writeText(shareText).then(() => {
-            alert("Score copied to clipboard!");
-        });
-    }
-}
-
-// ==========================================
-// 10. HELP & STATS MODAL EVENTS
+// 9. HELP (HOW TO PLAY) MODAL
 // ==========================================
 const btnHelp = document.getElementById('btn-help');
 const helpModal = document.getElementById('help-modal');
@@ -780,83 +744,270 @@ if (closeHelpBtn) {
     });
 }
 
-const btnStats = document.getElementById('btn-stats');
-const statsModal = document.getElementById('stats-modal');
-const closeStatsBtn = document.getElementById('close-stats');
-
-if (btnStats) {
-    btnStats.addEventListener('click', () => {
-        statsModal.classList.add('active');
-        renderStatsUI();
-    });
-}
-
-if (closeStatsBtn) {
-    closeStatsBtn.addEventListener('click', () => {
-        statsModal.classList.remove('active');
-    });
-}
-
-function renderStatsUI() {
-    const stats = JSON.parse(localStorage.getItem(STORAGE_KEYS.STATS)) || {
-        played: 0, streak: 0, maxStreak: 0, bestScore: 0, distribution: {}
-    };
-
-    document.getElementById('stat-played').textContent = stats.played;
-    document.getElementById('stat-streak').textContent = stats.streak;
-    document.getElementById('stat-max-streak').textContent = stats.maxStreak;
-    document.getElementById('personal-best-value').textContent = stats.bestScore;
-
-    const distContainer = document.getElementById('dist-container');
-    if (Object.keys(stats.distribution).length === 0) {
-        distContainer.innerHTML = '<p class="def-text">Play a game to see your distribution!</p>';
-        return;
-    }
-
-    distContainer.innerHTML = '';
-    const ranges = ['0-19', '20-39', '40-59', '60-79', '80-99', '100-119', '120-139', '140-159', '160+'];
-    const maxCount = Math.max(...Object.values(stats.distribution), 1);
-
-    ranges.forEach(range => {
-        const count = stats.distribution[range] || 0;
-        const widthPercent = Math.max((count / maxCount) * 100, 5); 
-        
-        const wrapper = document.createElement('div');
-        wrapper.className = 'dist-bar-wrapper';
-        
-        const label = document.createElement('span');
-        label.style.width = '50px';
-        label.textContent = range;
-
-        const bar = document.createElement('div');
-        bar.className = 'dist-bar';
-        if (count > 0 && new Date().toDateString() === new Date(stats.lastDate || '').toDateString()) {
-             bar.classList.add('highlight');
-        }
-        bar.style.width = `${widthPercent}%`;
-        bar.textContent = count;
-
-        wrapper.appendChild(label);
-        wrapper.appendChild(bar);
-        distContainer.appendChild(wrapper);
-    });
-}
-
+// Modal dışına tıklandığında (karanlık alana) modalları kapatma genel mantığı
 document.addEventListener('click', (e) => {
+    // Sadece 'active' class'ına sahip overlay'lere tıklandıysa kapat
     if (e.target.classList.contains('modal-overlay')) {
         e.target.classList.remove('active');
     }
 });
 
+function getScoreHeartEmoji(score) {
+    const heartMap = {
+        15: '💜', // Mor
+        9:  '💙', // Mavi
+        7:  '🩵', // Açık Mavi (Teal/Abuz Mavi)
+        5:  '💚', // Yeşil
+        4:  '💛', // Sarı
+        2:  '🧡', // Turuncu
+        0:  '🩶'  // Gri
+    };
+    return heartMap[score] || heartMap[0];
+}
+
+async function handleShare(totalScore, rowScores, colScores) {
+    const challengeNo = document.getElementById('challenge-display').textContent;
+    const shareLink = window.location.href;
+    const emptyCell = '⬜'; // Spoiler koruması
+
+    let gridText = "";
+    
+    // Satır sonlarına kalpler (5 satır)
+    for (let i = 0; i < 5; i++) {
+        gridText += `${emptyCell}${emptyCell}${emptyCell}${emptyCell}${emptyCell} ${getScoreHeartEmoji(rowScores[i])}\n`;
+    }
+    
+    // Alt sütun puanları için kalpler (6. satır)
+    let colLine = "";
+    for (let j = 0; j < 5; j++) {
+        colLine += `${getScoreHeartEmoji(colScores[j])}`;
+    }
+    
+    const fullMessage = `Grid Master ${challengeNo}\nScore: ${totalScore}\n\n${gridText}${colLine}\n\nPlay here: ${shareLink}`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ text: fullMessage });
+        } catch (err) { console.log("Share cancelled"); }
+    } else {
+        try {
+            await navigator.clipboard.writeText(fullMessage);
+            const btn = document.getElementById('btn-share-score');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "COPIED!";
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        } catch (err) { alert("Could not copy."); }
+    }
+}
+
 // ==========================================
-// 11. DARK MODE LOGIC
+// 10. STATISTICS & STREAK LOGIC
+// ==========================================
+
+async function updatePlayerStats(currentScore) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const statsRef = doc(db, "users", user.uid, "en", "data", "user_summary", "stats");
+        
+        // Eğer hafızada yoksa mecbur veritabanından çekeceğiz ki streak hesaplayabilelim
+        if (!cachedUserStats) {
+            const snap = await getDoc(statsRef);
+            if (snap.exists()) {
+                cachedUserStats = snap.data();
+            } else {
+                cachedUserStats = { played: 0, currentStreak: 0, maxStreak: 0, personalBest: 0, distribution: [0,0,0,0,0], lastPlayedDate: null };
+            }
+        }
+
+        // 1. Oynanma Sayısı & En İyi Skor
+        cachedUserStats.played++;
+        if (currentScore > cachedUserStats.personalBest) {
+            cachedUserStats.personalBest = currentScore;
+        }
+
+        // 2. Streak Hesaplama (Bugün ve Dün mantığı)
+        const today = new Date();
+        // Saat dilimi kaymalarını önlemek için yerel tarihi string yapıyoruz (YYYY-MM-DD)
+        const todayStr = today.toLocaleDateString('en-CA'); 
+        
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+
+        if (cachedUserStats.lastPlayedDate === yesterdayStr) {
+            cachedUserStats.currentStreak++;
+        } else if (cachedUserStats.lastPlayedDate !== todayStr) {
+            // Eğer en son bugün oynanmadıysa ve dün de oynanmadıysa seri bozulmuş demektir
+            cachedUserStats.currentStreak = 1; 
+        }
+
+        if (cachedUserStats.currentStreak > cachedUserStats.maxStreak) {
+            cachedUserStats.maxStreak = cachedUserStats.currentStreak;
+        }
+        cachedUserStats.lastPlayedDate = todayStr;
+
+        // 3. Skor Dağılımını Güncelle (0-39, 40-59, 60-79, 80-99, 100+)
+        if (currentScore <= 39) cachedUserStats.distribution[0]++;
+        else if (currentScore <= 59) cachedUserStats.distribution[1]++;
+        else if (currentScore <= 79) cachedUserStats.distribution[2]++;
+        else if (currentScore <= 99) cachedUserStats.distribution[3]++;
+        else cachedUserStats.distribution[4]++;
+
+        // 4. Firebase'e Kaydet
+        await setDoc(statsRef, cachedUserStats);
+
+    } catch (error) {
+        console.error("Error updating stats:", error);
+    }
+}
+
+// ==========================================
+// 11. STATISTICS MODAL & LOGIC
+// ==========================================
+
+async function showStatsModal() {
+    const statsModal = document.getElementById('stats-modal');
+    const distContainer = document.getElementById('dist-container');
+    
+    // Yükleniyor durumu
+    distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Loading stats...</p>';
+    statsModal.classList.add('active');
+
+    // Kullanıcı girişi kontrolü (Senin Firebase auth yapına göre uyarla)
+    const user = auth.currentUser; 
+    if (!user) {
+        distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Please log in to see stats.</p>';
+        return;
+    }
+
+    // Eğer veri daha önce çekilmediyse Firebase'den çek
+    if (!cachedUserStats) {
+        try {
+            const statsRef = doc(db, "users", user.uid, "en", "data", "user_summary", "stats");
+            const statsSnap = await getDoc(statsRef);
+            
+            if (statsSnap.exists()) {
+                cachedUserStats = statsSnap.data();
+            } else {
+                // Hiç oynamamış kullanıcı için varsayılan değerler
+                cachedUserStats = {
+                    played: 0,
+                    currentStreak: 0,
+                    maxStreak: 0,
+                    personalBest: 0,
+                    distribution: [0, 0, 0, 0, 0]
+                };
+            }
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+            distContainer.innerHTML = '<p class="def-text" style="text-align: center;">Could not load stats.</p>';
+            return;
+        }
+    }
+
+    // --- Değerleri Ekrana Yazdır ---
+    document.getElementById('stat-played').textContent = cachedUserStats.played;
+    document.getElementById('stat-streak').textContent = cachedUserStats.currentStreak;
+    document.getElementById('stat-max-streak').textContent = cachedUserStats.maxStreak;
+    document.getElementById('personal-best-value').textContent = cachedUserStats.personalBest;
+
+    // --- Dağılım Grafiğini (Bar Chart) Çiz ---
+    distContainer.innerHTML = ''; // Loading yazısını temizle
+    
+    // Senin belirlediğin aralıklar:
+    const labels = ['0-39', '40-59', '60-79', '80-99', '100+'];
+    const maxVal = Math.max(...cachedUserStats.distribution); // En çok hangi aralıkta skor var?
+
+    cachedUserStats.distribution.forEach((count, index) => {
+        // En yüksek bar %100 genişlikte olur, diğerleri ona göre oranlanır.
+        // Hiç yoksa bile barın görünmesi için minimum %7 genişlik veriyoruz.
+        const percentage = maxVal > 0 ? (count / maxVal) * 100 : 0;
+        const widthPercent = Math.max(7, percentage); 
+        
+        // Eğer o anki skor bu bar içindeyse, ona Wordle yeşili (highlight) sınıfı ekleyebiliriz
+        // Şimdilik hepsi standart gri renkte gelecek (CSS'teki .dist-bar)
+        const barHtml = `
+            <div class="dist-bar-wrapper">
+                <div style="width: 55px; text-align: right; padding-right: 5px;">${labels[index]}</div>
+                <div style="flex-grow: 1;">
+                    <div class="dist-bar" style="width: ${widthPercent}%;">${count}</div>
+                </div>
+            </div>
+        `;
+        distContainer.insertAdjacentHTML('beforeend', barHtml);
+    });
+}
+
+// ==========================================
+// 12. STATS MODAL EVENT LISTENERS
+// ==========================================
+
+const btnStats = document.getElementById('btn-stats');
+const closeStats = document.getElementById('close-stats');
+const statsModal = document.getElementById('stats-modal');
+
+if (btnStats) {
+    btnStats.addEventListener('click', showStatsModal);
+}
+
+if (closeStats) {
+    closeStats.addEventListener('click', () => {
+        statsModal.classList.remove('active'); // Düzeltildi
+    });
+}
+
+// ==========================================
+// 13. DAILY GLOBAL TOP SCORE
+// ==========================================
+
+async function handleDailyTopScore(userScore, dateStr) {
+    const dailyBestVal = document.getElementById('final-daily-best-value');
+    const userScoreBox = document.querySelector('.user-score-box');
+    
+    if (!dailyBestVal || !userScoreBox) return;
+
+    try {
+        const topScoreRef = doc(db, "daily_stats_en", dateStr);
+        const docSnap = await getDoc(topScoreRef);
+        
+        let currentTop = 0;
+        if (docSnap.exists()) {
+            currentTop = docSnap.data().topScore || 0;
+        }
+
+        // Skorları kutulara yazdır
+        dailyBestVal.textContent = currentTop;
+
+        if (userScore >= currentTop && userScore > 0) {
+            // 👑 Yeni rekor! (Sadece 0'dan büyükse rekor sayalım)
+            await setDoc(topScoreRef, { topScore: userScore }, { merge: true });
+            
+            // Daily Best değerini anında güncelle
+            dailyBestVal.textContent = userScore;
+            
+            // Your Score kutusunu parlat (CSS class ekle)
+            userScoreBox.classList.add('new-record');
+        } else {
+            userScoreBox.classList.remove('new-record');
+        }
+
+    } catch (error) {
+        console.error("Error handling top score:", error);
+    }
+}
+
+// ==========================================
+// 14. DARK MODE LOGIC
 // ==========================================
 const btnTheme = document.getElementById('btn-theme');
 const iconMoon = document.getElementById('theme-icon-moon');
 const iconSun = document.getElementById('theme-icon-sun');
 
+// 1. Sayfa yüklendiğinde eski tercihi kontrol et
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    const savedTheme = localStorage.getItem('gridMaster_en_theme');
     
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -867,33 +1018,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// 2. Butona basıldığında temayı değiştir ve kaydet
 if (btnTheme) {
     btnTheme.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         const isDark = document.body.classList.contains('dark-mode');
         
         if (isDark) {
-            localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
+            localStorage.setItem('gridMaster_en_theme', 'dark');
             iconMoon.classList.add('hidden');
             iconSun.classList.remove('hidden');
         } else {
-            localStorage.setItem(STORAGE_KEYS.THEME, 'light');
+            localStorage.setItem('gridMaster_en_theme', 'light');
             iconSun.classList.add('hidden');
             iconMoon.classList.remove('hidden');
         }
     });
 }
-
-// ==========================================
-// 12. DEVELOPMENT TOOLS & INIT
-// ==========================================
-const btnDevReset = document.getElementById('btn-dev-reset');
-if (btnDevReset) {
-    btnDevReset.addEventListener('click', () => {
-        localStorage.removeItem(STORAGE_KEYS.STATE);
-        window.location.reload();
-    });
-}
-
-// Start Engine
-document.addEventListener('DOMContentLoaded', initGame);
