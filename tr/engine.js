@@ -570,27 +570,25 @@ async function openDictionaryModal(word) {
     modalDef.innerHTML = '<p class="def-text">Anlamı aranıyor...</p>';
     dictModal.classList.add('active');
 
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyHywT-EMNS7J1eOGbALgi2TGNF-uuM9wFpsVk12gn1_Lwwz0bq6AgY7m9EuAHSKXlP/exec";
+
     try {
-        // TDK Sözlük API'sine istek atıyoruz
-        const response = await fetch(`https://sozluk.gov.tr/gts?ara=${word.toLowerCase()}`);
+        const response = await fetch(`${scriptUrl}?word=${encodeURIComponent(word.toLocaleLowerCase('tr-TR'))}`);
         const data = await response.json();
-        
-        if (data.error) {
+
+        if (!data || !data[0] || !data[0].anlamlarListe) {
             modalDef.innerHTML = '<p class="def-text">Sözlükte bu kelimeye ait bir tanım bulunamadı.</p>';
             return;
         }
 
-        const anlamlar = data[0].anlamlarListe;
         let htmlContent = '';
-        
-        // İlk 2 anlamı listele
-        anlamlar.slice(0, 2).forEach(anlam => {
+        data[0].anlamlarListe.slice(0, 2).forEach(anlam => {
             htmlContent += `<div class="def-text">• ${anlam.anlam}</div>`;
         });
-        
+
         modalDef.innerHTML = htmlContent;
     } catch (error) {
-        modalDef.innerHTML = '<p class="def-text">Bağlantı hatası. TDK sunucularına ulaşılamadı.</p>';
+        modalDef.innerHTML = '<p class="def-text">Bağlantı hatası. Sözlüğe ulaşılamadı.</p>';
     }
 }
 
