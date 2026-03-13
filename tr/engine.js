@@ -136,7 +136,7 @@ function saveGameState() {
 function setupDailyContext() {
     // SİHİR BURADA: Artık bugünü değil, oynanan tarihi kullanıyoruz!
     const options = { month: 'long', day: 'numeric', year: 'numeric' };
-    dateDisplay.textContent = currentPlayingDate.toLocaleDateString('en-US', options);
+    dateDisplay.textContent = currentPlayingDate.toLocaleDateString('tr-TR', options);
     
     const startDate = new Date("2026-03-06T00:00:00");
     const startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
@@ -628,7 +628,7 @@ function renderArchiveUI(userScores) {
         const day = String(currentDate.getDate()).padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`; 
         
-        const displayDate = currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const displayDate = currentDate.toLocaleDateString('tr-TR', { month: 'long', day: 'numeric', year: 'numeric' });
         
         const itemDiv = document.createElement('div');
         
