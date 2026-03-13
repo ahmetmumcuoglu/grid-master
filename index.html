@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grid Master</title>
+    <script>
+        // Tarayıcı dilini kontrol et
+        const userLang = navigator.language || navigator.userLanguage; 
+        if (userLang.startsWith('tr')) {
+            window.location.replace("/tr/");
+        } else {
+            window.location.replace("/en/");
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting... <a href="/en/">Click here for English</a> | <a href="/tr/">Türkçe için tıklayın</a></p>
+</body>
+</html>
