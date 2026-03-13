@@ -1,1 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Grid Master</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-app">
+        <header class="header">
+            <button id="btn-archive" class="icon-btn" aria-label="Arşiv" title="Arşiv">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            
+            <h1 class="title">Grid Master</h1>
+            
+            <div class="header-right">
+                <button id="btn-theme" class="icon-btn" aria-label="Tema Değiştir" title="Tema Değiştir">
+                    <svg id="theme-icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="theme-icon-sun" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="btn-help" class="icon-btn" aria-label="Nasıl Oynanır" title="Nasıl Oynanır">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <button id="btn-stats" class="icon-btn" aria-label="İstatistikler" title="İstatistikler">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                </button>
+            </div>
+        </header>
+        
+        <div class="sub-header">
+            <div>
+                <span id="date-display">Tarih yükleniyor...</span>
+                <span id="challenge-display" style="margin-left: 10px; color: var(--color-border-focus);">No. ?</span>
+            </div>
+            
+            <button id="btn-share-score" class="share-btn-compact hidden">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                PAYLAŞ
+            </button>
+        </div>
 
+        <main class="board-container">
+            <div id="grid" class="grid">
+                </div>
+        </main>
+
+        <div class="controls-container">
+            <div id="game-message-area" class="message-area">
+                <div id="action-message" class="message">Sözlük yükleniyor...</div>
+            </div>
+
+            <div id="end-game-stats-area" class="end-game-stats-layout hidden">
+                <div class="stats-flex-container">
+                    
+                    <div class="final-score-box user-score-box">
+                        <span class="stats-label">SKORUNUZ</span>
+                        <span id="final-user-score-value" class="stats-value">0</span>
+                    </div>
+
+                    <div class="final-score-box daily-best-box">
+                        <span class="stats-label">GÜNÜN EN İYİSİ</span>
+                        <span id="final-daily-best-value" class="stats-value">0</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="current-letter-box" class="letter-box hidden"></div>
+            <div id="joker-keyboard" class="keyboard-container hidden"></div>
+            <div id="words-list-container" class="words-container hidden"></div>
+            <button id="btn-dev-reset" class="dev-reset-btn">DEV RESET</button>
+        </div>
+        
+    </div> 
+    
+    <div id="dictionary-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-modal" class="modal-close">&times;</button>
+            <h2 id="modal-word-title">KELİME</h2>
+            <div id="modal-word-def">
+                <p class="def-text">Anlamı yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="archive-modal" class="modal-overlay">
+        <div class="modal-content archive-content">
+            <button id="close-archive" class="modal-close">&times;</button>
+            <h2 id="archive-title">ARŞİV</h2>
+            <div id="archive-list" class="archive-list">
+                <p class="def-text" style="text-align: center;">Arşiv yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content help-content">
+            <button id="close-help" class="modal-close">&times;</button>
+            <h2 class="modal-title">NASIL OYNANIR</h2>
+            
+            <div class="help-text">
+                <p>5x5 ızgara üzerinde yatay (soldan sağa) ve dikey (yukarıdan aşağıya) kelimeler oluşturun.</p>
+                
+                <ul>
+                    <li>Oyun her gün 24 rastgele harf üretir: 14 ünsüz ve 10 ünlü.</li>
+                    <li>Rastgele gelen harfi yerleştirmek için <strong>bir hücreye dokunun</strong> ve onaylamak için <strong>tekrar dokunun</strong>.</li>
+                    <li>Son (25.) hamlenizde, tahtayı tamamlamak için klavyeden bir <strong>Joker</strong> harf seçeceksiniz.</li>
+                    <li><strong>Kural:</strong> Izgaradaki her harf, her satırda ve her sütunda sadece <strong>bir kelimede</strong> kullanılabilir.</li>
+                </ul>
+
+                <h3>Puanlama</h3>
+                <div class="score-table">
+                    <div><span>2 Harf</span><span>2 Puan</span></div>
+                    <div><span>3 Harf</span><span>5 Puan</span></div>
+                    <div><span>4 Harf</span><span>9 Puan</span></div>
+                    <div><span>5 Harf</span><span>15 Puan</span></div>
+                </div>
+                
+                <p class="help-note"><em>Oyun, her satır ve sütundaki en yüksek puanlı kelime kombinasyonunu otomatik olarak hesaplar.</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-content stats-content">
+            <button id="close-stats" class="modal-close">&times;</button>
+            <h2 class="modal-title">İSTATİSTİKLER</h2>
+            
+            <div class="stats-summary">
+                <div class="stat-box">
+                    <span id="stat-played" class="stat-value">0</span>
+                    <span class="stat-label">Oynanan</span>
+                </div>
+                <div class="stat-box">
+                    <span id="stat-streak" class="stat-value">0</span>
+                    <span class="stat-label">Mevcut Seri</span>
+                </div>
+                <div class="stat-box">
+                    <span id="stat-max-streak" class="stat-value">0</span>
+                    <span class="stat-label">En İyi Seri</span>
+                </div>
+            </div>
+
+            <h3 class="stats-sub-title">Puan Dağılımı</h3>
+            <div id="dist-container" class="dist-container">
+                <p class="def-text">Dağılımınızı görmek için bir oyun oynayın!</p>
+            </div>
+
+            <div class="personal-best-banner">
+                EN İYİ SKORUNUZ: <span id="personal-best-value">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="engine.js"></script>
+</body>
+</html>
