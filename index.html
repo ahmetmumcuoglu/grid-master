@@ -3,14 +3,17 @@
 <head>
     <title>Grid Master</title>
     <script>
-        // Tarayıcı dilini kontrol et
-        const userLang = navigator.language || navigator.userLanguage; 
-        if (userLang.startsWith('tr')) {
-            window.location.replace("/tr/");
-        } else {
-            window.location.replace("/en/");
-        }
-    </script>
+    // Kullanıcının dil tercihlerini al
+    const userLang = (navigator.language || navigator.userLanguage).toLowerCase(); 
+    
+    // Eğer dil "tr" ile başlıyorsa (tr, tr-TR, tr-tr vb.) Türkçe klasörüne git
+    if (userLang.includes('tr')) {
+        window.location.replace("/tr/");
+    } else {
+        // Geri kalan her şey (en, de, fr vb.) İngilizceye
+        window.location.replace("/en/");
+    }
+</script>
 </head>
 <body>
     <p>Redirecting... <a href="/en/">Click here for English</a> | <a href="/tr/">Türkçe için tıklayın</a></p>
