@@ -562,34 +562,46 @@ function renderWordsList(words) {
 }
 
 async function openDictionaryModal(word) {
-    // Modalı aç ve yükleniyor göster
     modalTitle.textContent = word;
     modalDef.innerHTML = '<p class="def-text">Looking up definition...</p>';
     dictModal.classList.add('active');
 
+    const wiktionaryProxy = "https://script.google.com/macros/s/AKfycbxGfBwZjoVshF35XR-WzhO5Y6u3rbt1e8uhAVrcbnVdJdNLWEmU3QS_k2BSraUmkiwaLg/exec";
+
+    // 1. Önce dictionaryapi.dev'i dene
     try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        
-        if (!response.ok) {
-            modalDef.innerHTML = '<p class="def-text">Valid game word, but specific definition not found in this free dictionary.</p>';
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data[0]?.meanings) {
+                let html = '';
+                data[0].meanings.slice(0, 2).forEach(m => {
+                    html += `<div class="def-part">${m.partOfSpeech}</div>
+                             <div class="def-text">• ${m.definitions[0].definition}</div>`;
+                });
+                modalDef.innerHTML = html;
+                return;
+            }
+        }
+    } catch (e) {}
+
+    // 2. Bulamazsa Wiktionary proxy'ye geç
+    try {
+        const res = await fetch(`${wiktionaryProxy}?word=${encodeURIComponent(word.toLowerCase())}`);
+        const data = await res.json();
+
+        if (data && data.length > 0 && data[0].definitions?.length > 0) {
+            let html = '';
+            data.slice(0, 2).forEach(entry => {
+                html += `<div class="def-part">${entry.partOfSpeech}</div>
+                         <div class="def-text">• ${entry.definitions[0].definition.replace(/<[^>]*>/g, '')}</div>`;
+            });
+            modalDef.innerHTML = html;
             return;
         }
+    } catch (e) {}
 
-        const data = await response.json();
-        const meanings = data[0].meanings;
-        
-        // İlk 2 anlamı ekrana bas (uzunluk çok artmasın diye)
-        let htmlContent = '';
-        meanings.slice(0, 2).forEach(meaning => {
-            htmlContent += `<div class="def-part">${meaning.partOfSpeech}</div>`;
-            htmlContent += `<div class="def-text">• ${meaning.definitions[0].definition}</div>`;
-        });
-        
-        modalDef.innerHTML = htmlContent;
-
-    } catch (error) {
-        modalDef.innerHTML = '<p class="def-text">Connection error. Could not fetch definition.</p>';
-    }
+    modalDef.innerHTML = '<p class="def-text">Valid game word, but definition not found.</p>';
 }
 
 // Modalı kapatma işlemleri
