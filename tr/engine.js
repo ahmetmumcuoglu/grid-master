@@ -40,12 +40,12 @@ let currentPlayingDate = new Date();
 let cachedUserStats = null;
 
 const LETTER_POOL = {
-    'A': 9, 'B': 2, 'C': 2, 'D': 4, 'E': 12, 'F': 2, 'G': 3, 'H': 2,
-    'I': 9, 'J': 1, 'K': 1, 'L': 4, 'M': 2, 'N': 6, 'O': 8, 'P': 2,
-    'Q': 1, 'R': 6, 'S': 4, 'T': 6, 'U': 4, 'V': 2, 'W': 2, 'X': 1,
-    'Y': 2, 'Z': 1
+    'A': 5, 'E': 5, 'İ': 5, 'K': 6, 'L': 5, 'R': 6, 'N': 4, 'T': 4,
+    'I': 3, 'M': 4, 'U': 4, 'Y': 3, 'S': 4, 'D': 3, 'O': 3, 'B': 3,
+    'Ü': 3, 'Ş': 3, 'Z': 3, 'G': 1, 'H': 3, 'Ç': 3, 'P': 3, 'C': 2,
+    'V': 2, 'Ö': 2, 'F': 2, 'J': 1, 'Ğ': 1
 };
-const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+const VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
 const SCORE_RULES = { 2: 2, 3: 5, 4: 9, 5: 15 };
 
 // DOM Elements
@@ -183,8 +183,8 @@ function generateDailyLetters(seed) {
     shuffle(consonantPool);
     
     let finalSequence = [];
-    finalSequence.push(...vowelPool.slice(0, 10));
-    finalSequence.push(...consonantPool.slice(0, 14));
+    finalSequence.push(...vowelPool.slice(0, 12));
+    finalSequence.push(...consonantPool.slice(0, 12));
     shuffle(finalSequence);
     
     return finalSequence;
@@ -217,7 +217,7 @@ function renderGrid() {
 }
 
 function renderKeyboard() {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".split('');
     jokerKeyboard.innerHTML = '';
     
     alphabet.forEach(letter => {
@@ -524,33 +524,31 @@ function renderWordsList(words) {
 }
 
 async function openDictionaryModal(word) {
-    // Modalı aç ve yükleniyor göster
     modalTitle.textContent = word;
-    modalDef.innerHTML = '<p class="def-text">Looking up definition...</p>';
+    modalDef.innerHTML = '<p class="def-text">Anlamı aranıyor...</p>';
     dictModal.classList.add('active');
 
     try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/tr/${word}`);
+        // TDK Sözlük API'sine istek atıyoruz
+        const response = await fetch(`https://sozluk.gov.tr/gts?ara=${word.toLowerCase()}`);
+        const data = await response.json();
         
-        if (!response.ok) {
-            modalDef.innerHTML = '<p class="def-text">Valid game word, but specific definition not found in this free dictionary.</p>';
+        if (data.error) {
+            modalDef.innerHTML = '<p class="def-text">Sözlükte bu kelimeye ait bir tanım bulunamadı.</p>';
             return;
         }
 
-        const data = await response.json();
-        const meanings = data[0].meanings;
-        
-        // İlk 2 anlamı ekrana bas (uzunluk çok artmasın diye)
+        const anlamlar = data[0].anlamlarListe;
         let htmlContent = '';
-        meanings.slice(0, 2).forEach(meaning => {
-            htmlContent += `<div class="def-part">${meaning.partOfSpeech}</div>`;
-            htmlContent += `<div class="def-text">• ${meaning.definitions[0].definition}</div>`;
+        
+        // İlk 2 anlamı listele
+        anlamlar.slice(0, 2).forEach(anlam => {
+            htmlContent += `<div class="def-text">• ${anlam.anlam}</div>`;
         });
         
         modalDef.innerHTML = htmlContent;
-
     } catch (error) {
-        modalDef.innerHTML = '<p class="def-text">Connection error. Could not fetch definition.</p>';
+        modalDef.innerHTML = '<p class="def-text">Bağlantı hatası. TDK sunucularına ulaşılamadı.</p>';
     }
 }
 
