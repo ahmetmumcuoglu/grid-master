@@ -105,7 +105,7 @@ function getLocalDateStr(dateObj) {
 }
 
 function loadGameState() {
-    const savedState = localStorage.getItem('gridMaster_dailyState');
+    const savedState = localStorage.getItem('gridMaster_dailyState_EN');
     
     if (savedState) {
         const state = JSON.parse(savedState);
