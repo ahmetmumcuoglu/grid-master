@@ -127,7 +127,7 @@ function saveGameState() {
         grid: gridData,
         move: currentMove
     };
-    localStorage.setItem('gridMaster_dailyState', JSON.stringify(state));
+    localStorage.setItem('gridMaster_dailyState_EN', JSON.stringify(state));
 }
 
 // ==========================================
@@ -492,7 +492,7 @@ const btnDevReset = document.getElementById('btn-dev-reset');
 if (btnDevReset) {
     btnDevReset.addEventListener('click', () => {
         // Clear the saved state from LocalStorage
-        localStorage.removeItem('gridMaster_dailyState');
+        localStorage.removeItem('gridMaster_dailyState_EN');
         // Reload the page to start a fresh game
         window.location.reload();
     });
@@ -680,7 +680,7 @@ function startSpecificDateGame(dateStr) {
     jokerLetter = null;
     
     // 3. Hafızayı (Local Storage) temizle ki eski oyunla çakışmasın
-    localStorage.removeItem('gridMaster_dailyState'); 
+    localStorage.removeItem('gridMaster_dailyState_EN'); 
     
     // 4. Oyun Arayüzünü Yeni Tarihe Göre Çiz
     setupDailyContext();
@@ -1007,7 +1007,7 @@ const iconSun = document.getElementById('theme-icon-sun');
 
 // 1. Sayfa yüklendiğinde eski tercihi kontrol et
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('gridMaster_theme');
+    const savedTheme = localStorage.getItem('gridMaster_theme_EN');
     
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -1025,11 +1025,11 @@ if (btnTheme) {
         const isDark = document.body.classList.contains('dark-mode');
         
         if (isDark) {
-            localStorage.setItem('gridMaster_theme', 'dark');
+            localStorage.setItem('gridMaster_theme_EN', 'dark');
             iconMoon.classList.add('hidden');
             iconSun.classList.remove('hidden');
         } else {
-            localStorage.setItem('gridMaster_theme', 'light');
+            localStorage.setItem('gridMaster_theme_EN', 'light');
             iconSun.classList.add('hidden');
             iconMoon.classList.remove('hidden');
         }
