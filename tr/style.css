@@ -1,1 +1,837 @@
+/* --- CSS Reset & Variables --- */
+:root {
+    --color-bg: #ffffff;
+    --color-text: #1a1a1a;
+    --color-text-muted: #555555;
+    --color-border: #d3d6da;
+    --color-border-focus: #878a8c;
+    --color-cell-bg: #ffffff;
+    --color-cell-active: #e2e8f0;
+    
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+    --font-sans: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
 
+/* --- Dark Mode Theme --- */
+body.dark-mode {
+    --color-bg: #121213; /* Koyu gri/siyah arka plan */
+    --color-text: #f8f8f8; /* Açık renk metin */
+    --color-text-muted: #818384;
+    --color-border: #3a3a3c;
+    --color-border-focus: #565758;
+    --color-cell-bg: #121213;
+    --color-cell-active: #272729;
+}
+
+/* Karanlık modda skor kutuları, modallar ve arşiv listesi için ufak düzeltmeler */
+body.dark-mode .final-score-box,
+body.dark-mode .modal-content,
+body.dark-mode .archive-item,
+body.dark-mode .score-table {
+    background-color: #1a1a1b;
+    border-color: #3a3a3c;
+}
+
+body.dark-mode .stats-value,
+body.dark-mode .stats-label,
+body.dark-mode #modal-word-title {
+    color: #f8f8f8;
+}
+
+/* Tema butonu ikon görünürlüğü */
+#btn-theme svg {
+    display: block;
+    color: var(--color-text);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    display: flex;
+    justify-content: center;
+    /* YENİ: Mobil tarayıcı çubuklarını hesaplayan dinamik yükseklik ve kaydırma kilidi */
+    height: 100dvh; 
+    overflow-y: auto; 
+    overscroll-behavior-y: none; /* Mobilde sekmeyi önler */ 
+}
+
+.game-app {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Öğeleri yukarıdan aşağıya eşit iter */
+
+    /* YENİ: Güvenli Alan (Safe Area) Ayarları */
+    /* Üstten en az 10px, çentik varsa çentik kadar boşluk bırakır */
+    padding-top: max(10px, env(safe-area-inset-top)); 
+    /* Alttaki kaydırma çubuğu (Home Indicator) için güvenli alan */
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); 
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+}
+
+/* --- Header Section --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.header-right {
+    display: flex;
+    gap: 12px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+    opacity: 0.6;
+}
+
+/* --- Sub-header (Date & Dev Reset) --- */
+.sub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Board & Grid --- */
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: auto; /* YENİ: Üstte kalan tüm boşluğu burası emer */
+    flex-grow: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 4px;
+    /* SİHİRLİ KOD: Genişlik ekranın %100'ünü geçmesin, yüksekliğin de %45'ini geçmesin */
+    width: min(100%, 45dvh); 
+    aspect-ratio: 1 / 1;
+}
+
+.cell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(1.5rem, 6vw, 2rem); 
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: var(--color-cell-bg);
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.cell[data-state="empty"]:hover {
+    background-color: var(--color-cell-active);
+}
+
+.cell[data-state="filled"] {
+    border-color: var(--color-border-focus);
+    color: var(--color-text);
+}
+
+/* --- Draft State (Taslak) --- */
+.cell[data-state="draft"] {
+    border: 2px dashed var(--color-border-focus);
+    color: var(--color-text-muted);
+    background-color: #f8f9fa;
+}
+
+/* --- Controls Container --- */
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: auto; /* YENİ: Altta kalan tüm boşluğu burası emer */
+}
+
+.message {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.letter-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    border: 2px solid var(--color-text);
+    border-radius: 8px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- Joker Keyboard --- */
+.keyboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 350px;
+    margin-top: 5px;
+}
+
+.key-btn {
+    width: 32px;
+    height: 42px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    background-color: var(--color-cell-active);
+    color: var(--color-text);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.1s;
+}
+
+.key-btn:hover {
+    background-color: #cbd5e1;
+}
+
+.key-btn.selected {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+}
+
+/* --- Final 6x6 Score Grid --- */
+.grid.final-grid {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    /* Büyüyen tablo için yüksekliğin %55'ine kadar izin verdik */
+    width: min(100%, 55dvh); 
+    aspect-ratio: 1 / 1;
+    gap: 4px; 
+    margin-bottom: 20px; /* Altındaki skor kutularıyla arasına mesafe */
+}
+
+.cell.score-cell {
+    border: 2px solid var(--color-border) !important;
+    font-size: clamp(1.5rem, 6vw, 2rem) !important; 
+    font-weight: 700;
+    transition: background-color 0.5s ease;
+}
+
+.score-0 { background-color: #94a3b8; color: #1a1a1a !important; }
+.score-2 { background-color: #f97316; color: #1a1a1a !important; }
+.score-4 { background-color: #facc15; color: #1a1a1a !important; }
+.score-5 { background-color: #14b8a6; color: #1a1a1a !important; }
+.score-7 { background-color: #22c55e; color: #1a1a1a !important; }
+.score-9 { background-color: #3b82f6; color: #1a1a1a !important; }
+.score-15 { background-color: #8b5cf6; color: #1a1a1a !important; }
+
+.cell.empty-corner {
+    background-color: transparent !important;
+    border: none !important;
+    cursor: default;
+}
+
+.final-score-text {
+    font-size: 20px !important;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 5px;
+}
+
+/* --- Mobil Optimizasyon --- */
+@media (max-width: 420px) {
+    .cell { border-width: 1.5px; }
+    .grid, .grid.final-grid { gap: 3px; }
+    
+    /* GÜNCELLENDİ: Kutucuğu 52px'den 50px'e çektik ve yazıyı ortaladık */
+    .letter-box { 
+        width: 50px; 
+        height: 50px; 
+        font-size: 26px; 
+        line-height: 50px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .key-btn { width: 28px; height: 40px; font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+    /* Senin mevcut istatistik kuralların */
+    .stats-flex-container { gap: 10px; }
+    .stats-value { font-size: 22px; }
+
+    /* YENİ: Dikey boşlukları tıraşlama (Sarkmayı önleyen kısım) */
+    .board-container {
+        margin-top: 10px; 
+        margin-bottom: 5px; 
+        flex-grow: 0; 
+    }
+    .controls-container {
+        margin-top: 0px; 
+        gap: 5px; 
+    }
+    #game-message-area .message {
+        font-size: 14px;
+        padding: 5px;
+    }
+    
+    /* --- 6x6 Final Grid'i Zarifleştirme (Sadece Mobilde) --- */
+    .grid.final-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0px; 
+        width: 90%; 
+        max-width: 360px;
+        margin: 20px auto; 
+        padding: 0;
+        border: 1px solid var(--color-border); 
+    }
+    
+    .grid.final-grid .cell {
+        width: 100%; 
+        aspect-ratio: 1 / 1;
+        height: auto;
+        font-size: 18px;
+        border: 1px solid var(--color-border); 
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff; /* Normal hücreler beyaz */
+    }
+
+    /* Skor Hücreleri: Renklerin gelmesi için background-color'ı serbest bırakıyoruz */
+    .grid.final-grid .cell.score-cell {
+        font-size: 13px; /* Font 1 kademe daha küçültüldü (14px'den 13px'e) */
+        font-weight: 800;
+        color: white; /* Rakamların renkli kutu içinde okunması için beyaz yapıyoruz */
+        text-shadow: 0px 1px 2px rgba(0,0,0,0.2); /* Okunabilirliği artırmak için hafif gölge */
+    }
+
+    /* Önemli: Skor renklerinin beyaz arka planı ezmesi için öncelik veriyoruz */
+    .grid.final-grid .score-2 { background-color: #f97316 !important; } /* Turuncu */
+    .grid.final-grid .score-4 { background-color: #facc15 !important; } /* Sarı */
+    .grid.final-grid .score-5 { background-color: #22c55e !important; } /* Yeşil */
+    .grid.final-grid .score-7 { background-color: #14b8a6 !important; } /* Teal */
+    .grid.final-grid .score-9 { background-color: #3b82f6 !important; } /* Mavi */
+    .grid.final-grid .score-15 { background-color: #a855f7 !important; } /* Mor */
+    .grid.final-grid .score-0 { background-color: #94a3b8 !important; } /* Gri */
+}
+
+/* --- YENİ: Words Found List (Kelime Listesi) --- */
+.words-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 5px;
+    /* Ana ekran kaymasın diye sadece kelime listesi kendi içinde kayar */
+    overflow-y: auto; 
+    max-height: 15vh; 
+    padding-bottom: 10px;
+}
+
+.word-pill {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border-focus);
+    border-radius: 20px; /* Hap (Pill) görünümü */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.word-pill:hover {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+}
+
+/* --- YENİ: Dictionary Bottom Sheet Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4); /* Arka planı hafif karartır */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* İçeriği en alta yaslar */
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none; /* Gizliyken tıklanmayı engeller */
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--color-bg);
+    width: 100%;
+    max-width: 500px; /* PC'de çok yayılmasın diye limitli */
+    padding: 24px 20px 40px 20px; /* Safe area için alt padding bol tutuldu */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    transform: translateY(100%); /* Başlangıçta ekranın altında saklıdır */
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0); /* Sahnede yukarı kayarak belirir */
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px; right: 20px;
+    background: none; border: none;
+    font-size: 28px; cursor: pointer; color: var(--color-text-muted);
+}
+
+#modal-word-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    color: var(--color-text);
+}
+
+.def-part {
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+
+.def-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+/* --- Archive Modal Styles --- */
+.archive-content {
+    max-height: 80vh; 
+}
+
+#archive-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    color: var(--color-text);
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.archive-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.archive-item.played {
+    border-color: var(--color-border-focus);
+    background-color: #f8f9fa;
+}
+
+.archive-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.archive-status {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.archive-score {
+    color: var(--color-text);
+    font-size: 16px;
+}
+
+.archive-play-btn {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* --- Help / How to Play Modal Styles --- */
+.help-content {
+    max-height: 85vh;
+}
+
+.modal-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 1px;
+    color: var(--color-text);
+}
+
+.help-text p {
+    font-size: 16px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+.help-text ul {
+    margin-left: 20px;
+    margin-bottom: 25px;
+}
+
+.help-text li {
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--color-text);
+    line-height: 1.4;
+}
+
+.help-text h3 {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.score-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.score-table div {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-text);
+}
+
+.help-note {
+    font-size: 14px !important;
+    color: var(--color-text-muted) !important;
+    text-align: center;
+}
+
+/* --- Compact Share Button (Sub-header) --- */
+.share-btn-compact {
+    background-color: #6aaa64; /* Wordle Yeşili */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex; /* İkon ve yazıyı yan yana hizalar */
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s, transform 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.share-btn-compact:hover {
+    background-color: #538d4e;
+}
+
+.share-btn-compact:active {
+    transform: scale(0.95);
+}
+
+.share-btn-compact.hidden {
+    display: none !important;
+}
+
+/* --- Stats Modal Styles --- */
+.stats-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-sub-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.dist-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.dist-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.dist-bar {
+    background-color: var(--color-text-muted);
+    color: white;
+    min-width: 20px;
+    padding: 2px 8px;
+    text-align: right;
+    border-radius: 2px;
+    transition: width 0.5s ease-out;
+}
+
+.dist-bar.highlight {
+    background-color: #6aaa64; /* Wordle yeşili gibi bir vurgu */
+}
+
+.personal-best-banner {
+    background-color: #1a1a1a;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+}
+
+/* --- Daily Top Score Banner --- */
+.daily-top-banner {
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px auto;
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #334155;
+    max-width: 300px;
+    transition: all 0.3s ease;
+}
+
+.daily-top-banner.new-record {
+    background-color: #fef08a; /* Altın/Sarı vurgu */
+    border-color: #facc15;
+    color: #854d0e;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- Controls Container & Spacing --- */
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Elemanlar arası ferah boşluk */
+    margin-top: 15px;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- End Game Stats Layout (Yan Yana Kutular) --- */
+.end-game-stats-layout {
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.end-game-stats-layout.hidden {
+    display: none !important;
+}
+
+.stats-flex-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Kutular arası boşluk */
+    width: 100%;
+}
+
+/* Ortak Dikdörtgen Kutu Stili */
+.final-score-box {
+    flex: 1; /* Eşit genişlik */
+    max-width: 160px; /* Maksimum genişlik sınırı */
+    background-color: #f8fafc; /* Nötr, temiz arka plan */
+    border: 1px solid #e2e8f0; /* Hafif kenarlık */
+    border-radius: 8px; /* Hafif yuvarlatılmış köşeler */
+    padding: 12px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-out, background-color 0.3s;
+}
+
+.stats-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b; /* Muted metin rengi */
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 5px;
+}
+
+.stats-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1e293b; /* Koyu, okunaklı skor */
+}
+
+/* Rekor Kırıldığında Parlama Efekti */
+.user-score-box.new-record {
+    background-color: #fef08a; /* Altın rengi vurgu */
+    border-color: #facc15;
+    transform: scale(1.03); /* Hafif büyüme */
+}
+
+.user-score-box.new-record .stats-value,
+.user-score-box.new-record .stats-label {
+    color: #854d0e; /* Altın rengi ile uyumlu koyu metin */
+}
+
+/* --- Oyun İçi Ekran Kilidi --- */
+body.game-locked {
+    overflow: hidden !important;
+    height: 100vh !important;
+    touch-action: none; /* Mobilde yukarı/aşağı sekmeyi (bounce) engeller */
+}
+
+body.game-locked .game-app {
+    height: 100vh !important;
+    justify-content: flex-start; /* İçeriği ekrana eşit yayar */
+}
+
+#btn-help svg {
+    display: block;
+    color: var(--color-text); /* Header rengine uyum sağlar */
+}
+
+#btn-help:hover svg {
+    opacity: 0.7;
+}
