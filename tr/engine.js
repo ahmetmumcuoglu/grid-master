@@ -764,15 +764,17 @@ function startSpecificDateGame(dateStr) {
 
     // ==========================================
 
-    // 6. Ekranı tekrar kilitle ve arayüzü çiz
-    document.body.classList.add('game-locked');
-    renderGrid();
-    updateUI();
-    saveGameState(); // Temiz haliyle yeni tarihi hemen LocalStorage'a kaydet
-    
-    // Yeni oyun mesajı
-    const actionMessage = document.getElementById('action-message');
-    if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
+    // 6. Oyun durumuna göre ekranı ayarla
+    if (isGameActive) {
+        document.body.classList.add('game-locked');
+        renderGrid();
+        updateUI();
+        const actionMessage = document.getElementById('action-message');
+        if(actionMessage) actionMessage.textContent = "Arşiv yüklendi. Bir hücre seçin.";
+    } else {
+        document.body.classList.remove('game-locked');
+        calculateAndSaveScore();
+    }
 }
 
 // ==========================================
