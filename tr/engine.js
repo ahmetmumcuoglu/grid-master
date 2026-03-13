@@ -83,7 +83,7 @@ async function initGame() {
         if (currentMove < 25) {
             isGameActive = true;
             document.body.classList.add('game-locked'); // Oyun devam ediyorsa ekranı kilitle
-            actionMessage.textContent = "Tap a cell to draft, tap again to place.";
+            actionMessage.textContent = "Çift tıklayarak harfi hücreye yerleştirin.";
         } else {
             // Eğer sayfa yenilendiğinde oyun zaten bitmişse kilidi aç ve sonuçları göster
             document.body.classList.remove('game-locked'); 
@@ -248,9 +248,9 @@ function updateUI() {
         jokerKeyboard.classList.add('hidden');
         
         if (draftIndex !== null) {
-            actionMessage.textContent = "Tap again to place.";
+            actionMessage.textContent = "Tekrar tıklayarak harfi yerleştirin.";
         } else {
-            actionMessage.textContent = "Tap a cell to draft your letter.";
+            actionMessage.textContent = "Bir hücre seçin.";
         }
     } else if (currentMove === 24) {
         currentLetterBox.classList.add('hidden');
