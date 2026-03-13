@@ -997,3 +997,41 @@ async function handleDailyTopScore(userScore, dateStr) {
         console.error("Error handling top score:", error);
     }
 }
+
+// ==========================================
+// 14. DARK MODE LOGIC
+// ==========================================
+const btnTheme = document.getElementById('btn-theme');
+const iconMoon = document.getElementById('theme-icon-moon');
+const iconSun = document.getElementById('theme-icon-sun');
+
+// 1. Sayfa yüklendiğinde eski tercihi kontrol et
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('gridMaster_theme');
+    
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (iconMoon && iconSun) {
+            iconMoon.classList.add('hidden');
+            iconSun.classList.remove('hidden');
+        }
+    }
+});
+
+// 2. Butona basıldığında temayı değiştir ve kaydet
+if (btnTheme) {
+    btnTheme.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        if (isDark) {
+            localStorage.setItem('gridMaster_theme', 'dark');
+            iconMoon.classList.add('hidden');
+            iconSun.classList.remove('hidden');
+        } else {
+            localStorage.setItem('gridMaster_theme', 'light');
+            iconSun.classList.add('hidden');
+            iconMoon.classList.remove('hidden');
+        }
+    });
+}
