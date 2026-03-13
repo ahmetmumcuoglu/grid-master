@@ -1,21 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Grid Master</title>
-    <script>
-    // Kullanıcının dil tercihlerini al
-    const userLang = (navigator.language || navigator.userLanguage).toLowerCase(); 
-    
-    // Eğer dil "tr" ile başlıyorsa (tr, tr-TR, tr-tr vb.) Türkçe klasörüne git
-    if (userLang.includes('tr')) {
-        window.location.replace("/tr/");
-    } else {
-        // Geri kalan her şey (en, de, fr vb.) İngilizceye
-        window.location.replace("/en/");
-    }
-</script>
+    <title>Yönlendiriliyor / Redirecting...</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-    <p>Redirecting... <a href="/en/">Click here for English</a> | <a href="/tr/">Türkçe için tıklayın</a></p>
+    <p><a href="/en/index.html">English</a> | <a href="/tr/index.html">Türkçe</a></p>
 </body>
 </html>
