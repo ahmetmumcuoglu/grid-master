@@ -12,6 +12,38 @@
     --font-sans: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* --- Dark Mode Theme --- */
+body.dark-mode {
+    --color-bg: #121213; /* Koyu gri/siyah arka plan */
+    --color-text: #f8f8f8; /* Açık renk metin */
+    --color-text-muted: #818384;
+    --color-border: #3a3a3c;
+    --color-border-focus: #565758;
+    --color-cell-bg: #121213;
+    --color-cell-active: #272729;
+}
+
+/* Karanlık modda skor kutuları, modallar ve arşiv listesi için ufak düzeltmeler */
+body.dark-mode .final-score-box,
+body.dark-mode .modal-content,
+body.dark-mode .archive-item,
+body.dark-mode .score-table {
+    background-color: #1a1a1b;
+    border-color: #3a3a3c;
+}
+
+body.dark-mode .stats-value,
+body.dark-mode .stats-label,
+body.dark-mode #modal-word-title {
+    color: #f8f8f8;
+}
+
+/* Tema butonu ikon görünürlüğü */
+#btn-theme svg {
+    display: block;
+    color: var(--color-text);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
