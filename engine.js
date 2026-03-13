@@ -685,16 +685,42 @@ function startSpecificDateGame(dateStr) {
     // 4. Oyun Arayüzünü Yeni Tarihe Göre Çiz
     setupDailyContext();
     
-    // (Oyun sonu ekranı kalmışsa temizle)
-    gridEl.classList.remove('final-grid');
-    document.getElementById('words-list-container').classList.add('hidden');
+    // ==========================================
+    // 5. UI SIFIRLAMA (Sorunu Çözen Kısım)
+    // ==========================================
     
+    // A. 6x6 final grid'i iptal et (5x5'e dön)
+    gridEl.classList.remove('final-grid');
+    
+    // B. Kelime listesini gizle
+    const wordsContainer = document.getElementById('words-list-container');
+    if(wordsContainer) wordsContainer.classList.add('hidden');
+    
+    // C. Oyun sonu skor kutucuklarını (Your Score / Daily Best) gizle
+    const endStatsArea = document.getElementById('end-game-stats-area');
+    if(endStatsArea) endStatsArea.classList.add('hidden');
+    
+    // D. Parlayan "Yeni Rekor" sınıfını temizle (Sarı kutu kalmasın)
+    const userScoreBox = document.querySelector('.user-score-box');
+    if(userScoreBox) userScoreBox.classList.remove('new-record');
+
+    // E. Paylaş butonunu gizle
+    const shareBtn = document.getElementById('btn-share-score');
+    if(shareBtn) shareBtn.classList.add('hidden');
+    
+    // F. Oyun içi mesaj satırını tekrar GÖSTER
+    const messageArea = document.getElementById('game-message-area');
+    if(messageArea) messageArea.classList.remove('hidden');
+
+    // ==========================================
+
+    // 6. Ekranı tekrar kilitle ve arayüzü çiz
+    document.body.classList.add('game-locked');
     renderGrid();
     updateUI();
     saveGameState(); // Temiz haliyle yeni tarihi hemen LocalStorage'a kaydet
     
-    document.body.classList.add('game-locked'); // YENİ: Arşiv oyunu başlarken ekranı kilitle
-    
+    // Yeni oyun mesajı
     const actionMessage = document.getElementById('action-message');
     if(actionMessage) actionMessage.textContent = "Archive loaded. Tap a cell to draft.";
 }
