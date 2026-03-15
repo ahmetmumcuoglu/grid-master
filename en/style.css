@@ -840,3 +840,23 @@ body.game-locked .game-app {
 #btn-help:hover svg {
     opacity: 0.7;
 }
+
+.archive-view-btn {
+    background-color: var(--color-border);
+    color: var(--color-text);
+    border: 1px solid var(--color-border-focus);
+    padding: 6px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.archive-view-btn:hover {
+    background-color: var(--color-border-focus);
+    transform: scale(1.05);
+}
