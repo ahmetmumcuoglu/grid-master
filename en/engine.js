@@ -691,14 +691,13 @@ function renderArchiveUI(userScores) {
                 <span class="archive-date">${displayDate}</span>
                 <span class="archive-status archive-score">Score: ${userScores[dateStr]}</span>
             `;
-        } else {
-            // OYNANMAMIŞ GÜN
-            itemDiv.className = 'archive-item';
-            itemDiv.innerHTML = `
-                <span class="archive-date">${displayDate}</span>
-                <button class="archive-play-btn" data-date="${dateStr}">Play</button>
-            `;
-        }
+        } else if (userScores[dateStr] !== undefined) {
+    itemDiv.className = 'archive-item played';
+    itemDiv.innerHTML = `
+        <span class="archive-date">${displayDate}</span>
+        <button class="archive-view-btn" data-date="${dateStr}">Score: ${userScores[dateStr]} 👁️</button>
+    `;
+}
         
         archiveList.appendChild(itemDiv);
         currentDate.setDate(currentDate.getDate() - 1);
@@ -708,10 +707,18 @@ function renderArchiveUI(userScores) {
 // Arşiv listesi içindeki "Play" butonlarını dinle (Event Delegation)
 if (archiveList) {
     archiveList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('archive-play-btn')) {
-            const dateStr = e.target.getAttribute('data-date');
-            archiveModal.classList.remove('active'); // Modalı kapat
-            startSpecificDateGame(dateStr); // Zaman makinesini çalıştır!
+        // Hangi butona tıklandığını bul
+        const playBtn = e.target.closest('.archive-play-btn');
+        const viewBtn = e.target.closest('.archive-view-btn');
+
+        if (playBtn) {
+            const dateStr = playBtn.getAttribute('data-date');
+            archiveModal.classList.remove('active'); 
+            startSpecificDateGame(dateStr); 
+        } else if (viewBtn) {
+            const dateStr = viewBtn.getAttribute('data-date');
+            archiveModal.classList.remove('active'); 
+            viewPastGame(dateStr); // Yeni yazdığımız fonksiyonu çağırıyoruz
         }
     });
 }
@@ -784,6 +791,79 @@ function startSpecificDateGame(dateStr) {
     } else {
         document.body.classList.remove('game-locked');
         calculateAndSaveScore();
+    }
+}
+
+// GEÇMİŞ OYUNU GÖRÜNTÜLEME FONKSİYONU
+async function viewPastGame(dateStr) {
+    const parts = dateStr.split('-');
+    currentPlayingDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    // Üst bilgiyi (Tarih ve Challenge No) güncelle
+    setupDailyContext();
+
+    // UI'ı Temizle ve Kitle
+    const wordsContainer = document.getElementById('words-list-container');
+    if(wordsContainer) wordsContainer.classList.add('hidden');
+
+    const endStatsArea = document.getElementById('end-game-stats-area');
+    if(endStatsArea) endStatsArea.classList.add('hidden');
+
+    const messageArea = document.getElementById('game-message-area');
+    if(messageArea) {
+        messageArea.classList.remove('hidden');
+        document.getElementById('action-message').textContent = "Geçmiş oyun verisi yükleniyor... / Loading...";
+    }
+
+    gridEl.classList.remove('final-grid');
+    gridEl.innerHTML = '';
+    
+    document.body.classList.add('game-locked');
+    isGameActive = false;
+
+    try {
+        // Firebase'den o günkü ızgarayı (grid) çek
+        const docRef = doc(db, COLLECTIONS.SCORES, `${dateStr}_${userId}`);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().grid) {
+            gridData = docSnap.data().grid;
+            const pastScore = docSnap.data().score;
+
+            // Puanları yeniden hesapla (Çünkü Firebase'de sadece grid harflerini tutuyoruz)
+            const GRID_SIZE = 5;
+            let rowScores = Array(5).fill(0);
+            let colScores = Array(5).fill(0);
+
+            for (let row = 0; row < GRID_SIZE; row++) {
+                const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
+                rowScores[row] = calculateLineData(getLineString(indices)).score;
+            }
+            for (let col = 0; col < GRID_SIZE; col++) {
+                const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
+                colScores[col] = calculateLineData(getLineString(indices)).score;
+            }
+
+            // Final grid'i ekrana çiz
+            renderFinalGrid(rowScores, colScores);
+
+            if(messageArea) messageArea.classList.add('hidden');
+            if(endStatsArea) endStatsArea.classList.remove('hidden');
+
+            // Kullanıcının o günkü skorunu yazdır
+            const finalUserScoreVal = document.getElementById('final-user-score-value');
+            if (finalUserScoreVal) finalUserScoreVal.textContent = pastScore;
+
+            // O günün Günlük En İyi (Daily Best) rekorunu çek ve yazdır
+            handleDailyTopScore(pastScore, dateStr);
+
+        } else {
+            // Eğer eski bir oyunsa ve grid veritabanında yoksa
+            document.getElementById('action-message').textContent = "Bu tarihe ait tablo verisi bulunamadı.";
+        }
+    } catch (error) {
+        console.error("Geçmiş oyun çekilirken hata:", error);
+        document.getElementById('action-message').textContent = "Bağlantı hatası.";
     }
 }
 
