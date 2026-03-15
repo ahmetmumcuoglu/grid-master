@@ -357,7 +357,7 @@ body {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #ffffff; /* Normal hücreler beyaz */
+        background-color: var(--color-cell-bg, #ffffff);
     }
 
     /* Skor Hücreleri: Renklerin gelmesi için background-color'ı serbest bırakıyoruz */
@@ -376,6 +376,11 @@ body {
     .grid.final-grid .score-9 { background-color: #3b82f6 !important; } /* Mavi */
     .grid.final-grid .score-15 { background-color: #a855f7 !important; } /* Mor */
     .grid.final-grid .score-0 { background-color: #94a3b8 !important; } /* Gri */
+}
+
+/* Mobil final grid karanlık mod ezmesi */
+body.dark-mode .grid.final-grid .cell:not(.score-cell) {
+    background-color: var(--color-cell-bg);
 }
 
 /* --- YENİ: Words Found List (Kelime Listesi) --- */
