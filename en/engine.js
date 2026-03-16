@@ -812,7 +812,7 @@ async function viewPastGame(dateStr) {
     const messageArea = document.getElementById('game-message-area');
     if(messageArea) {
         messageArea.classList.remove('hidden');
-        document.getElementById('action-message').textContent = "Geçmiş oyun verisi yükleniyor... / Loading...";
+        document.getElementById('action-message').textContent = "Loading past game data...";
     }
 
     gridEl.classList.remove('final-grid');
@@ -823,7 +823,7 @@ async function viewPastGame(dateStr) {
 
     try {
         // Firebase'den o günkü ızgarayı (grid) çek
-        const docRef = doc(db, COLLECTIONS.SCORES, `${dateStr}_${userId}`);
+        const docRef = doc(db, "users", userId, "en", "data", "daily_scores", dateStr);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists() && docSnap.data().grid) {
@@ -859,11 +859,11 @@ async function viewPastGame(dateStr) {
 
         } else {
             // Eğer eski bir oyunsa ve grid veritabanında yoksa
-            document.getElementById('action-message').textContent = "Bu tarihe ait tablo verisi bulunamadı.";
+            document.getElementById('action-message').textContent = "No game data found for this date.";
         }
     } catch (error) {
-        console.error("Geçmiş oyun çekilirken hata:", error);
-        document.getElementById('action-message').textContent = "Bağlantı hatası.";
+        console.error("Error loading past game:", error);
+        document.getElementById('action-message').textContent = "Connection error.";
     }
 }
 
