@@ -303,7 +303,7 @@ body {
     .cell { border-width: 1.5px; }
     .grid { gap: 3px; }
     .grid.final-grid { gap: 4px; width: min(100%, 98vw); }
-    .cell.score-cell { border-width: 1px !important; font-size: clamp(0.8rem, 3.5vw, 1.2rem) !important; }
+    .cell.score-cell { border-width: 1px !important; font-size: clamp(1rem, 5vw, 1.4rem) !important; }
     
     /* GÜNCELLENDİ: Kutucuğu 52px'den 50px'e çektik ve yazıyı ortaladık */
     .letter-box { 
