@@ -258,19 +258,24 @@ body {
 
 /* --- Final 6x6 Score Grid --- */
 .grid.final-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 4px; /* <--- BURASI DEĞİŞTİ (Hücreler arası boşluk) */
-        width: 90%; 
-        max-width: 360px;
-        margin: 20px auto; 
-        padding: 0;
-        border: none; /* <--- BURASI DEĞİŞTİ (Dış çerçeveyi kaldırdık) */
-    }
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    /* Web'de 6x6 grid'in rahat nefes alması için alanı biraz büyütüyoruz */
+    width: min(100%, 60dvh); 
+    max-width: 460px; /* Masaüstünde çok devasa olmasını engeller */
+    aspect-ratio: 1 / 1;
+    gap: 5px; /* Ana ekrandaki kutular arası boşluk hissiyatını koruyoruz */
+    margin-bottom: 20px; 
+}
+
+/* YENİ: Web'de final grid içindeki tüm kutuların (harf ve skor) kenarlıklarını inceltiyoruz */
+.grid.final-grid .cell {
+    border-width: 1px !important; /* 2px olan kaba görünümü 1px ile zarifleştirdik */
+}
 
 .cell.score-cell {
-    border: 2px solid var(--color-border) !important;
-    font-size: clamp(1rem, 4.5vw, 1.5rem) !important; 
+    border: 1px solid var(--color-border) !important;
+    font-size: clamp(1.1rem, 4vw, 1.5rem) !important; /* Fontları sığacak şekilde optimize ettik */
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
