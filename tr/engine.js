@@ -812,7 +812,7 @@ async function viewPastGame(dateStr) {
 
     try {
         // Firebase'den o günkü ızgarayı (grid) çek
-        const docRef = doc(db, daily_scores, `${dateStr}_${userId}`);
+        const docRef = doc(db, "users", userId, "tr", "data", "daily_scores", dateStr);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists() && docSnap.data().grid) {
