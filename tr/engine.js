@@ -677,7 +677,7 @@ function renderArchiveUI(userScores) {
             itemDiv.className = 'archive-item played';
             itemDiv.innerHTML = `
                 <span class="archive-date">${displayDate}</span>
-                <button class="archive-view-btn" data-date="${dateStr}">Skor: ${userScores[dateStr]} 👁️</button>
+                <button class="archive-view-btn" data-date="${dateStr}">Skor: ${userScores[dateStr]}</button>
             `;
         } else {
             // OYNANMAMIŞ GÜN
