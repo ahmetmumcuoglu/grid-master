@@ -261,7 +261,7 @@ body {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
     /* Büyüyen tablo için yüksekliğin %55'ine kadar izin verdik */
-    width: min(100%, 45dvh); 
+    width: min(100%, 52dvh); 
     aspect-ratio: 1 / 1;
     gap: 4px; 
     margin-bottom: 20px; /* Altındaki skor kutularıyla arasına mesafe */
@@ -300,7 +300,9 @@ body {
 /* --- Mobil Optimizasyon --- */
 @media (max-width: 420px) {
     .cell { border-width: 1.5px; }
-    .grid.final-grid { gap: 3px; width: min(100%, 45dvh); }
+    .grid { gap: 3px; }
+    .grid.final-grid { gap: 3px; width: min(100%, 98vw); }
+    .cell.score-cell { border-width: 1px !important; font-size: clamp(0.8rem, 3.5vw, 1.2rem) !important; }
     
     /* GÜNCELLENDİ: Kutucuğu 52px'den 50px'e çektik ve yazıyı ortaladık */
     .letter-box { 
