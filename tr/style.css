@@ -273,6 +273,7 @@ body {
 .grid.final-grid .cell {
     border-width: 1px !important; /* 2px olan kaba görünümü 1px ile zarifleştirdik */
     cursor: default !important; /* YENİ: Tıklanabilir el işaretini (pointer) kaldırır */
+    pointer-events: none !important; /* YENİ: Hücreyi fare etkileşimlerine tamamen kapatır */
 }
 
 .cell.score-cell {
