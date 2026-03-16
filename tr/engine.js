@@ -940,7 +940,7 @@ async function updatePlayerStats(currentScore) {
     if (!user) return;
 
     try {
-        const statsRef = doc(db, "users", user.uid, "en", "data", "user_summary", "stats");
+        const statsRef = doc(db, "users", user.uid, "tr", "data", "user_summary", "stats");
         
         // Eğer hafızada yoksa mecbur veritabanından çekeceğiz ki streak hesaplayabilelim
         if (!cachedUserStats) {
@@ -1016,7 +1016,7 @@ async function showStatsModal() {
     // Eğer veri daha önce çekilmediyse Firebase'den çek
     if (!cachedUserStats) {
         try {
-            const statsRef = doc(db, "users", user.uid, "en", "data", "user_summary", "stats");
+            const statsRef = doc(db, "users", user.uid, "tr", "data", "user_summary", "stats");
             const statsSnap = await getDoc(statsRef);
             
             if (statsSnap.exists()) {
@@ -1100,7 +1100,7 @@ async function handleDailyTopScore(userScore, dateStr) {
     if (!dailyBestVal || !userScoreBox) return;
 
     try {
-        const topScoreRef = doc(db, "daily_stats_en", dateStr);
+        const topScoreRef = doc(db, "daily_stats_tr", dateStr);
         const docSnap = await getDoc(topScoreRef);
         
         let currentTop = 0;
