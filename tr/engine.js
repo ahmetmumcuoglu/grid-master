@@ -510,7 +510,7 @@ async function submitToFirebase(score) {
     const dateStr = getLocalDateStr(currentPlayingDate);
 
     try {
-        const docRef = doc(db, "users", userId, "en", "data", "daily_scores", dateStr);
+        const docRef = doc(db, "users", userId, "tr", "data", "daily_scores", dateStr);
         await setDoc(docRef, {
             score: score,
             grid: gridData,
@@ -635,7 +635,7 @@ async function loadArchiveData() {
     archiveList.innerHTML = '<p class="def-text" style="text-align: center;">Fetching records...</p>';
 
     try {
-        const scoresRef = collection(db, "users", userId, "en", "data", "daily_scores");
+        const scoresRef = collection(db, "users", userId, "tr", "data", "daily_scores");
         const querySnapshot = await getDocs(scoresRef);
         
         const userScores = {};
