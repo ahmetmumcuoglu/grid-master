@@ -302,7 +302,7 @@ body {
 @media (max-width: 420px) {
     .cell { border-width: 1.5px; }
     .grid { gap: 3px; }
-    .grid.final-grid { gap: 3px; width: min(100%, 98vw); }
+    .grid.final-grid { gap: 4px; width: min(100%, 98vw); }
     .cell.score-cell { border-width: 1px !important; font-size: clamp(0.8rem, 3.5vw, 1.2rem) !important; }
     
     /* GÜNCELLENDİ: Kutucuğu 52px'den 50px'e çektik ve yazıyı ortaladık */
@@ -342,12 +342,12 @@ body {
     .grid.final-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 0px; 
+        gap: 4px; /* Boşluk eklendi */
         width: 90%; 
         max-width: 360px;
         margin: 20px auto; 
         padding: 0;
-        border: 1px solid var(--color-border); 
+        border: none; /* Dış çerçeve silindi */
     }
     
     .grid.final-grid .cell {
