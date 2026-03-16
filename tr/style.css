@@ -265,6 +265,7 @@ body {
     max-width: 460px; /* Masaüstünde çok devasa olmasını engeller */
     aspect-ratio: 1 / 1;
     gap: 5px; /* Ana ekrandaki kutular arası boşluk hissiyatını koruyoruz */
+    margin-top: 30px;
     margin-bottom: 20px; 
 }
 
