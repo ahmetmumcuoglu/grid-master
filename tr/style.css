@@ -258,14 +258,15 @@ body {
 
 /* --- Final 6x6 Score Grid --- */
 .grid.final-grid {
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-    /* Büyüyen tablo için yüksekliğin %55'ine kadar izin verdik */
-    width: min(100%, 52dvh); 
-    aspect-ratio: 1 / 1;
-    gap: 4px; 
-    margin-bottom: 20px; /* Altındaki skor kutularıyla arasına mesafe */
-}
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px; /* <--- BURASI DEĞİŞTİ (Hücreler arası boşluk) */
+        width: 90%; 
+        max-width: 360px;
+        margin: 20px auto; 
+        padding: 0;
+        border: none; /* <--- BURASI DEĞİŞTİ (Dış çerçeveyi kaldırdık) */
+    }
 
 .cell.score-cell {
     border: 2px solid var(--color-border) !important;
