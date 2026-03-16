@@ -510,7 +510,7 @@ async function submitToFirebase(score) {
     const dateStr = getLocalDateStr(currentPlayingDate);
 
     try {
-        const docRef = doc(db, "users", userId, "tr", "data", "daily_scores", dateStr);
+        const docRef = doc(db, "users", userId, "en", "data", "daily_scores", dateStr);
         await setDoc(docRef, {
             score: score,
             grid: gridData,
