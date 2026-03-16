@@ -261,7 +261,7 @@ body {
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
     /* Büyüyen tablo için yüksekliğin %55'ine kadar izin verdik */
-    width: min(100%, 55dvh); 
+    width: min(100%, 45dvh); 
     aspect-ratio: 1 / 1;
     gap: 4px; 
     margin-bottom: 20px; /* Altındaki skor kutularıyla arasına mesafe */
@@ -269,7 +269,7 @@ body {
 
 .cell.score-cell {
     border: 2px solid var(--color-border) !important;
-    font-size: clamp(1.5rem, 6vw, 2rem) !important; 
+    font-size: clamp(1rem, 4.5vw, 1.5rem) !important; 
     font-weight: 700;
     transition: background-color 0.5s ease;
 }
