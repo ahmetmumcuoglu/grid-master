@@ -510,7 +510,7 @@ async function submitToFirebase(score) {
     const dateStr = getLocalDateStr(currentPlayingDate);
 
     try {
-        const docRef = doc(db, "users", userId, "en", "data", "daily_scores", dateStr);
+        const docRef = doc(db, "users", userId, "tr", "data", "daily_scores", dateStr);
         await setDoc(docRef, {
             score: score,
             grid: gridData,
@@ -812,7 +812,7 @@ async function viewPastGame(dateStr) {
 
     try {
         // Firebase'den o günkü ızgarayı (grid) çek
-        const docRef = doc(db, COLLECTIONS.SCORES, `${dateStr}_${userId}`);
+        const docRef = doc(db, daily_scores, `${dateStr}_${userId}`);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists() && docSnap.data().grid) {
