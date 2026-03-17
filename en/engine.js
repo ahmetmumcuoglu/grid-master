@@ -685,19 +685,20 @@ function renderArchiveUI(userScores) {
         const itemDiv = document.createElement('div');
         
         if (userScores[dateStr] !== undefined) {
-            // OYNANMIŞ GÜN
+            // OYNANMIŞ GÜN (Tıklanabilir Skor Butonu)
             itemDiv.className = 'archive-item played';
             itemDiv.innerHTML = `
                 <span class="archive-date">${displayDate}</span>
-                <span class="archive-status archive-score">Score: ${userScores[dateStr]}</span>
+                <button class="archive-view-btn" data-date="${dateStr}">Score: ${userScores[dateStr]} 👁️</button>
             `;
-        } else if (userScores[dateStr] !== undefined) {
-    itemDiv.className = 'archive-item played';
-    itemDiv.innerHTML = `
-        <span class="archive-date">${displayDate}</span>
-        <button class="archive-view-btn" data-date="${dateStr}">Score: ${userScores[dateStr]} 👁️</button>
-    `;
-}
+        } else {
+            // OYNANMAMIŞ GÜN (Play Butonu)
+            itemDiv.className = 'archive-item';
+            itemDiv.innerHTML = `
+                <span class="archive-date">${displayDate}</span>
+                <button class="archive-play-btn" data-date="${dateStr}">Play</button>
+            `;
+        }
         
         archiveList.appendChild(itemDiv);
         currentDate.setDate(currentDate.getDate() - 1);
