@@ -1,10 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>Yönlendiriliyor / Redirecting...</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting / Yönlendiriliyor...</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; color: #333; }
+        .loader { text-align: center; }
+    </style>
 </head>
 <body>
-    <p><a href="/en/index.html">English</a> | <a href="/tr/index.html">Türkçe</a></p>
+    <div class="loader">
+        <p>Loading / Yükleniyor...</p>
+        <noscript>
+            <p><a href="/tr/index.html">Türkçe için tıklayın</a></p>
+            <p><a href="/en/index.html">Click for English</a></p>
+        </noscript>
+    </div>
+
+    <script>
+        async function checkLocationAndRedirect() {
+            // Yönlendirme yapılmadan önce ufak bir bekleme (opsiyonel)
+            try {
+                // IP bazlı konum kontrolü (Ücretsiz servis)
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+
+                if (data.country_code === "TR") {
+                    window.location.replace("/tr/index.html");
+                } else {
+                    window.location.replace("/en/index.html");
+                }
+            } catch (error) {
+                // API başarısız olursa (Ad-block vb.) Tarayıcı Dili Kontrolü
+                console.log("Konum servisi engellendi, tarayıcı diline bakılıyor...");
+                const userLang = navigator.language || navigator.userLanguage; 
+                
+                if (userLang.toLowerCase().startsWith('tr')) {
+                    window.location.replace("/tr/index.html");
+                } else {
+                    window.location.replace("/en/index.html");
+                }
+            }
+        }
+
+        // Fonksiyonu çalıştır
+        checkLocationAndRedirect();
+    </script>
 </body>
 </html>
