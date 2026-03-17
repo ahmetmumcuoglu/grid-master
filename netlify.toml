@@ -1,3 +1,10 @@
-[[edge_functions]]
-  path = "/"
-  function = "redirect"
+[[redirects]]
+  from = "/"
+  to = "/tr"
+  status = 302
+  conditions = {Country = ["tr"]}
+
+[[redirects]]
+  from = "/"
+  to = "/en"
+  status = 302
